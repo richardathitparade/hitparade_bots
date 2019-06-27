@@ -1,0 +1,111 @@
+{
+  "data_selectors": {
+    "wait_for_element": "div.event-list-table-wrapper",
+    "check_for_element" : "div.event-list-table-wrapper",
+    "hash_element" : [{
+      "tag": "table.table--rounds",
+      "hash_multiple":  false
+    }, {
+       "tag": "div.js-event-page-incidents-container",
+        "hash_multiple":  false
+    }],
+    "wait_for_element.multiple": false,
+    "is_nested": true,
+    "open_url": false,
+    "force_refresh": false,
+    "listen_for_urls": true,
+    "data_selectors": [
+      {
+        "div.event-list-table-wrapper.multiple": true,
+        "div.event-list-table-wrapper.types": [
+          "elements"
+        ],
+        "div.event-list-table-wrapper.selectors": [
+          "div.tournament"
+        ],
+        "selectors": [
+          "div.event-list-table-wrapper"
+        ],
+        "div.tournament.multiple": true,
+        "div.tournament.multiple.types": [
+          "elements"
+        ],
+        "div.tournament.selectors": [
+          "span.tournament__name",
+          "a.js-link",
+          "div.js-event-list-tournament-events"
+        ],
+        "span.tournament__name.multiple": false,
+        "span.tournament__name.types": [
+          "text"
+        ],
+        "a.js-link.multiple": false,
+        "a.js-link.types": [
+          "text",
+          "attributes"
+        ],
+        "a.js-link.attributes": [
+          "href"
+        ],
+        "div.js-event-list-tournament-events.multiple": true,
+        "div.js-event-list-tournament-events.types": [
+          "elements"
+        ],
+        "div.js-event-list-tournament-events.selectors": [
+          "a.cell--event-list"
+        ],
+        "a.cell--event-list.multiple": true,
+        "a.cell--event-list.selectors": [
+          "div.u-w48",
+          "div.event-team",
+          "div.event-rounds__final-score",
+          "div.event-rounds"
+        ],
+        "a.cell--event-list.types": [
+          "elements",
+          "attributes"
+        ],
+        "a.cell--event-list.attributes": [
+          "href",
+          "data-id",
+          "data-start-timestamp"
+        ],
+        "div.u-w48.multiple": false,
+        "div.u-w48.types": [
+          "text"
+        ],
+        "div.event-team.multiple": true,
+        "div.event-team.types": [
+          "text",
+          "attributes"
+        ],
+        "div.event-team.attributes": [
+          "class"
+        ],
+        "div.event-rounds.multiple": true,
+        "div.event-rounds.types": [
+          "elements"
+        ],
+        "div.event-rounds.selectors": [
+          "div.cell__content"
+        ],
+        "div.cell__content.multiple": true,
+        "div.cell__content.types": [
+          "elements"
+        ],
+        "div.cell__content.selectors": [
+          "span.event-rounds__tennis"
+        ],
+        "span.event-rounds__tennis.multiple": true,
+        "span.event-rounds__tennis.types": [
+          "text",
+          "attributes"
+        ],
+        "span.event-rounds__tennis.attributes": [
+          "class",
+          "title"
+        ]
+      }
+    ]
+  }
+}

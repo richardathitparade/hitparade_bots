@@ -1,0 +1,109 @@
+{
+  "bot.1": {
+    "bot.type": "producer",
+    "url_event_id" : "tennis_json_main.urls",
+    "model_event_id" : "tennis_json_main.models",
+    "postrun_actions" : [],
+    "prerun_actions" : [],
+    "active" : false
+  },
+  "bot.2": {
+    "bot.type": "publisher",
+    "url_event_id" : "tennis_json_main.urls",
+    "model_event_id" : "tennis_json_main.models",
+    "active": false,
+    "republisher": true,
+    "republishers" : [  { "type_id" : "SofaScoreDetailsUrlRepublisher" } ]
+},
+  "bot.3": {
+    "bot.type": "consumer",
+    "active": true,
+    "model_event_id" : "tennis_json_main.models",
+    "serializer" : "HitParadeJsonFileSerializer"
+  },
+  "bot.4": {
+    "bot.type": "consumer",
+    "active": false,
+    "model_event_id" : "tennis_json_details.models",
+    "serializer" : "HitParadeJsonFileSerializer"
+  },
+  "data_selectors" : [
+    {
+      "id" : "tennis_json_details",
+      "file" : "tennis_json_details.json",
+      "path" : "./config/"
+    },  {
+      "id" : "tennis_json_main",
+      "file" : "tennis_json_main.json",
+      "path" : "./config/"
+    }
+  ],
+  "url_generators": [
+    {
+     "base_url"                :       "https://www.sofascore.com/tennis/{new_date}",
+     "url_pattern"             :       "%Y-%m-%d",
+     "url_event_id"            :       "tennis_json_main.urls"
+    }
+  ],
+  "url_republishers": [
+    {
+      "model_event_id" : "tennis_json_main.models",
+      "detail_model_event_id": "tennis_json_details.models",
+      "url_event_id" : "tennis_json_details.urls",
+      "base_url" : "https://www.sofascore.com",
+      "match_attribute": "href",
+      "root_css": "div.event-list-table-wrapper",
+      "tournament_css" : "div.tournament",
+      "match_list_css" : "div.js-event-list-tournament-events",
+      "match_css" : "a.cell--event-list"
+    }
+  ],
+  "events" : {
+                "tennis_json_main.urls" : {
+                  "data_selector_id"        :       "tennis_json_main",
+                  "event_id"                :       "tennis_json_main.urls",
+                  "publish_to"              :       "events.sports.tennis.games.urls",
+                  "type"                    :       "urls",
+                  "subscribe_to"            :       "events.sports.tennis.games.urls.processors",
+                  "append_pid"              :       true,
+                  "recursive"               :       false,
+                  "model_id"                :       "tennis_json_main.models",
+                  "url_generator"           :       "SofaScoreMainUrlGenerator"
+                },
+                "tennis_json_main.models" : {
+                  "data_selector_id"        :       "tennis_json_main",
+                  "event_id"                :       "tennis_json_main.models",
+                  "publish_to"              :       [ "events.sports.tennis.games","events.sports.tennis.games.store" ],
+                  "type"                    :       "models" ,
+                  "store_from"              :       "events.sports.tennis.games.store",
+                  "append_pid"              :       false,
+                  "recursive"               :       false,
+                  "command_processor"       :       "HitParadeBotScrapeProcessor",
+                  "url_republisher"         :       "SofaScoreDetailsUrlRepublisher",
+                  "url_id"                  :       "tennis_json_main.urls",
+                  "serializer"              :       "HitParadeTennisGames"
+                },
+                "tennis_json_details.urls" :  {
+                  "data_selector_id"        :       "tennis_json_details",
+                  "event_id"                :       "tennis_json_details.urls",
+                  "publish_to"              :       "events.sports.tennis.games.urls",
+                  "type"                    :       "urls" ,
+                  "subscribe_to"            :       "events.sports.tennis.games.urls.processors",
+                  "append_pid"              :       true,
+                  "recursive"               :       false,
+                  "model_id"                :       "tennis_json_details.models"
+                },
+                "tennis_json_details.models" : {
+                  "data_selector_id"        :       "tennis_json_details",
+                  "event_id"                :       "tennis_json_details.models",
+                  "publish_to"              :       [ "events.sports.tennis.games.details" ,"events.sports.tennis.games.details.store" ],
+                  "store_from"              :       "events.sports.tennis.games.details.store",
+                  "command_processor"       :       "HitParadeBotScrapeProcessor",
+                  "type"                    :       "models" ,
+                  "append_pid"              :       false ,
+                  "recursive"               :       false,
+                  "url_id"                  :       "tennis_json_details.urls",
+                  "serializer"              :       "HitParadeTennisGameDetails"
+                }
+    }
+}

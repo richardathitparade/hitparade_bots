@@ -3,8 +3,6 @@ import json
 from threading import Thread
 import time
 import traceback
-
-
 class HitParadeConsumerThread(Thread):
 
     def __init__(self, **kwargs):
@@ -13,6 +11,7 @@ class HitParadeConsumerThread(Thread):
         self.__dict__[self.id_property] = MessagingQueue.unique_id(global_id=True, cache_manager=self.cache_manager)
         self.event_subscriptions = dict()
         self.subscribe_to_events()
+        self.cache_output_component_func = kwargs.get('cache_output_component_func', None)
         print('*********************************  HitParadeConsumerThread  *********************************')
 
     def subscribe_to_events(self):
@@ -86,10 +85,12 @@ class HitParadeConsumerThread(Thread):
                 if message and message.get('data', None) and not isinstance(message['data'], int):
                     message_dict = dict()
                     message_dict['data'] = self.load_data_from_string(**message)
+                    message_dict['type_id'] = self.serializer
                     consumer_args = self.__dict__
+                    consumer_args['type_id'] = self.serializer
                     if not message_dict['data'].get('scraper_url', None) is None:
-                        message_dict['filename'] = subscribe_to_events + '.' + message_dict['data'].get('scraper_url', None).split('/')[-1] + '.' + message_dict['data'].get(message_dict['data'].get('id_property', None), None) + '.json'
-                        self.cache_output_component_func.create(**consumer_args).store(**message_dict)
+                        message_dict['filename'] = self.sport_name + '.' + subscribe_to_events + '.' + message_dict['data'].get('scraper_url', None).split('/')[-1] + '.' + message_dict['data'].get(message_dict['data'].get('id_property', None), None) + '.json'
+                        self.cache_output_component_func(**consumer_args).store(**message_dict)
                 else:
                     print('hitparadeconsumer - noop for event %s' % subscribe_to_events)
             elif isinstance(subscribe_to_events, list):
@@ -98,10 +99,12 @@ class HitParadeConsumerThread(Thread):
                     if message and message.get('data', None) and not isinstance(message['data'], int):
                         message_dict = dict()
                         message_dict['data'] = self.load_data_from_string(**message)
+                        message_dict['type_id'] = self.serializer
                         consumer_args = self.__dict__
+                        consumer_args['type_id'] = self.serializer
                         if not message_dict['data'].get('scraper_url', None) is None:
-                            message_dict['filename'] = evt + '.' +  message_dict['data'].get('scraper_url', None).split('/')[-1] + '.' +  message_dict['data'].get( message_dict['data'].get('id_property', None), None) + '.json'
-                            self.cache_output_component_func.create(**consumer_args).store(**message_dict)  #process_model(**message_dict)
+                            message_dict['filename'] =  self.sport_name + '.' + evt + '.' +  message_dict['data'].get('scraper_url', None).split('/')[-1] + '.' +  message_dict['data'].get( message_dict['data'].get('id_property', None), None) + '.json'
+                            self.cache_output_component_func(**consumer_args).store(**message_dict)  #process_model(**message_dict)
                     else:
                         print('hitparadeconsumer - noop for event %s' % evt)
             time.sleep(self.sleep_time)
