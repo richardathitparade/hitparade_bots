@@ -37,8 +37,8 @@
       "republisher" : true,
       "bot_data_dictionary"  : [],
       "republisher_data" : [],
-      "AWS_ACCESS_KEY_ID" : "AKIAXXASKJMWFAUXSP5P",
-      "AWS_SECRET_ACCESS_KEY" : "q0dmcZF/GSYX4Nmpm0dDemoQ8g6gvk3WzVIJXCqr",
+      "AWS_ACCESS_KEY_ID" : "xxx",
+      "AWS_SECRET_ACCESS_KEY" : "xxx",
       "bucket_name"  :  "hitparade.tennis",
       "is_secure": false
 }
