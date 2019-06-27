@@ -145,11 +145,12 @@ class UrlPublisher(Thread):
                 rep['command_processor'] = self.command_processor
                 rep['id_property'] = self.id_property
                 rep['parent_id_property'] = self.parent_id_property
-                rep['subscribable_event'] =  self.events.get(self.model_event_id, None).get('publish_to', None)[0]
+                rep['subscribable_event'] =  self.events.get(rep['model_event_id'], None).get('publish_to', None)[0]
                 rep['data_selector_id'] =  self.events.get(self.model_event_id, None).get('data_selector_id', None)
                 rep['url_republisher_data'] = self.url_republisher_data
                 rep['state_storage_get_prop'] = self.state_storage_get_prop
                 rep['sleep_time'] = self.sleep_time
+                rep['events'] = self.events
                 new_republisher = HitParadeUrlRepublisher(**rep)
                 new_republisher.daemon = True
                 new_republisher.start()
@@ -175,17 +176,19 @@ class UrlPublisher(Thread):
                         print(  'Sending %s scrape to process %s ' % (url_value, str(process_id))  )
                         publish_dict = dict()
                         publish_dict['url'] = url_value
-                        publish_dict['data_selector'] = data_selector
                         publish_dict['id_property'] = id_property
                         publish_dict['parent_id_property'] = parent_id_property
                         publish_dict['scraper_process_id'] = process_id
                         publish_dict[ id_property ] =  id_value
                         publish_dict[ parent_id_property ] = parent_id_value
                         if self.is_republished(url=url_value):
-                            publish_dict['publish_to_event'] = publish_to_event
+                            publish_dict['publish_to_event'] = self.events.get(rep['detail_model_event_id'], None).get('publish_to', None)
+                            publish_dict['publish_event'] = self.events.get(rep['detail_model_event_id'], None).get('publish_to', None)
+                            publish_dict['data_selector'] = self.data_selectors.get( self.events.get(rep['detail_model_event_id'], None).get('data_selector_id', None) , None)
                         else:
                             publish_dict['publish_to_event'] = self.publish_to_event
-                        publish_dict['publish_event'] = publish_to_event
+                            publish_dict['publish_event'] = publish_to_event
+                            publish_dict['data_selector'] = self.data_selectors.get( self.events.get(rep['model_event_id'], None).get('data_selector_id', None)  , None)
                         publish_dict['output_type'] = 'cache'
                         if isinstance(push_event, list):
                             for pe in push_event:

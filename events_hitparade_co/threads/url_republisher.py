@@ -11,9 +11,12 @@ class HitParadeUrlRepublisher(Thread):
         self.id = MessagingQueue.unique_id(global_id=True, cache_manager=self.cache_manager)
         self.event_subscriptions = dict()
         self.subscribable_event  = kwargs.get( 'subscribable_event',  None )
-        self.subscribe_event = self.subscribable_event if isinstance(self.subscribable_event, str) else self.subscribable_event.get('event', self.subscribable_event.get('name', None))
-        if isinstance(self.subscribe_event, list):
-            self.subscribe_event = self.subscribe_event[0]
+        if isinstance(self.subscribable_event, list):
+            self.subscribe_event = self.subscribable_event
+        else:
+            self.subscribe_event = self.subscribable_event if isinstance(self.subscribable_event, str) else self.subscribable_event.get('event', self.subscribable_event.get('name', None))
+            if isinstance(self.subscribe_event, list):
+                self.subscribe_event = self.subscribe_event[0]
         republisher_type_id = list(filter(lambda u: u.get('url_event_id', None) == self.url_event_id,self.url_republisher_data ))[0].get('type_id', None)
         self.url_republisher_dict = list(filter(lambda u: u.get('url_event_id', None) == self.url_event_id,self.url_republisher_data ))[0]
         del self.url_republisher_dict['type_id']
@@ -46,7 +49,6 @@ class HitParadeUrlRepublisher(Thread):
                 if match_urls_object.get('id_property', None):
                     id_value = match_urls_object.get(match_urls_object.get('id_property', None), None)
                 obj_dict = dict()
-                obj_dict['id_property'] = match_urls_object.get('id_property', None)
                 obj_dict['id_property'] = match_urls_object.get('id_property', None)
                 obj_dict['parent_id_property'] = match_urls_object.get('parent_id_property', None)
                 if match_urls_object.get('id_property', None):

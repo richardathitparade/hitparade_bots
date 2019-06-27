@@ -3,10 +3,13 @@
 *.pyc
 /factories.txt
 /geckodriver
+geckodriver
 /geckodriver*
 /chromedriver
+chromedriver
 /chromedriver*
 /firefox
+firefox
 /firefox*
 !*.py
 !**/boot
