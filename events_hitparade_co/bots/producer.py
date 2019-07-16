@@ -1,8 +1,8 @@
 from events_hitparade_co.bots.bot import HitParadeBot
-from events_hitparade_co.messaging.messaging import MessagingQueue
 import gc
 import json
 import time
+from random import randrange
 import traceback
 import pprint as pp
 import threading
@@ -21,6 +21,7 @@ class HitParadeProducerBot(HitParadeBot):
         self.state_storage_store_prop(prop='start_url', val=kwargs.get('scraper_url', None))
         self.pp = pp.PrettyPrinter(indent=4)
         self.state_storage_store_prop(prop='producer_id', val=self.id)
+        self.get_state_static_prop = kwargs.get('get_state_static_prop', None) 
         kwargs['web_driver'] = self.web_driver
         self.messaging_thread = Messaging(**kwargs)
         self.messaging_thread.setDaemon(True)
@@ -30,9 +31,84 @@ class HitParadeProducerBot(HitParadeBot):
             'scraping_page'   : False,
             'current_url'     : None
         })
+        self.ip = kwargs.get('ip', None)
+        self.get_external_ip_addresss = kwargs.get('get_external_ip_addresss', None)
+        print('PRODUCER IP ADDRESS is %s ' % self.ip)
         print('*************************************  HitParadeProducerBot  *************************************')
 
+    def republish_format(self, json_data=None, republish_css=None, id_property='id', parent_id_property='parent_id', parent_id=None, parent_url=None):
+        republish_css_dict = dict()
+        republishers = republish_css.get('republishers', [])
+        for republisher_id in republishers:
+            republish_css_dict[republisher_id] = self.republish( json_data=json_data, republisher_css=republish_css.get(republisher_id, []), id_property=id_property, parent_id_property=parent_id_property, parent_id=parent_id, parent_url=parent_url )
+        return republish_css_dict
+             
 
+    def republish(self,json_data=None, republisher_css=None, id_property='id', parent_id_property='parent_id', parent_id=None, parent_url=None):
+        list_of_urls = []
+        if json_data is None:
+            if republisher_css is None or len(republisher_css) == 0: 
+                print('***** republisher_css is none and json_data is none')
+            else:
+                print('***** json_data is none and republisher_css is %s ' % str(republisher_css)) 
+        elif json_data and republisher_css and len(republisher_css) > 0:
+            css_listing = republisher_css[0]
+            css_listing_value = republisher_css[0].get('css', None)
+            css_listing_type = css_listing.get('type', None)
+            if css_listing_value and css_listing_type:
+                if css_listing_type == 'list':
+                    if isinstance(json_data, list):   
+                        for el in json_data:
+                            new_el = el.get( css_listing_value, None )
+                            if new_el and len(republisher_css)>1:
+                                list_of_urls += self.republish( json_data=new_el, republisher_css=republisher_css[1:], id_property=id_property, parent_id_property=parent_id_property, parent_id=parent_id, parent_url=parent_url ) 
+                            else:
+                                print('***** new_el is none or len republisher_css <= 1 keys[%s], %s' % ( str(  el.keys() ) , str( len( republisher_css) ) ) )
+                    elif isinstance(json_data, dict):
+                        json_data_value = json_data.get( css_listing_value, None )
+                        if json_data_value and len(republisher_css)>1:
+                            list_of_urls += self.republish( json_data=json_data_value, republisher_css=republisher_css[1:], id_property=id_property, parent_id_property=parent_id_property, parent_id=parent_id, parent_url=parent_url ) 
+                        else:
+                            print('***** json_data_value is none or len republisher_css is <=1 keys[%s], %s ' % ( str(json_data.keys()), str( len(republisher_css) ) ) )
+                    else:
+                        print('***** else 1 %s '% type(json_data))
+                        print('***** jsondata is %s ' % json_data)
+                elif css_listing_type == 'object':
+                    dict_value = {
+                        parent_id_property: parent_id, 
+                        'id_property': id_property,
+                        'parent_url': parent_url,
+                        'parent_id_property': parent_id_property
+                    }
+                    if isinstance( json_data, list ):
+                        for el in json_data:
+                            el_value =  el.get(css_listing_value, None)
+                            if el_value:
+                                dict_value['id'] = self.unique_id( global_id=True, cache_manager=self.cache_manager )
+                                dict_value['url'] = css_listing.get('base_url', None) + el.get( css_listing_value, None )
+                                list_of_urls.append( dict_value )
+                            else:
+                                print('***** el_value is none not adding')
+                                print('***** el keys are  %s' % str(el.keys()))
+                    elif isinstance( json_data, dict ):
+                        d_value = json_data.get(css_listing_value, None)
+                        if d_value:
+                            dict_value['id'] = self.unique_id( global_id=True, cache_manager=self.cache_manager )
+                            dict_value['url'] = css_listing['base_url'] + dict_value
+                            list_of_urls.append( dict_value ) 
+                        else:
+                            print('***** not adding dict_value it is none and d_value keys are %s'% str(json_data.keys()))
+                    elif isinstance( json_data, str ):
+                        print('***** ------------------- str  ------------------ ' % str(json_data) )
+                        list_of_urls.append( json_data )
+                    else: 
+                        print('***** else 2 %s '% type(json_data))
+                        print('***** jsondata is %s ' % json_data)
+        return list_of_urls
+
+            
+                
+        
     def reload_resources(self, id=-1, forced=False):
         """
         Determines whether or not the WebScraper has exceeded memory threshold.
@@ -47,7 +123,7 @@ class HitParadeProducerBot(HitParadeBot):
         return False
 
     def next_msg(self):
-        command, obj = MessagingQueue.wait_for_msg(id=self.id, direction='in', caller='HitParadeProducerBot')
+        command, obj = self.wait_for_msg(id=self.id, direction='in', caller='HitParadeProducerBot')
         obj['data'] = json.loads(obj['data'].decode('utf-8'))
         return {
             'command' : command,
@@ -55,20 +131,119 @@ class HitParadeProducerBot(HitParadeBot):
         }
 
     def send_complete(self):
-        MessagingQueue.send_msg(id=self.messaging_thread.id, direction='in', cmd='SEND', d={'message': 'COMPLETE'}, caller=str(self.id))
+        self.send_msg(id=self.messaging_thread.id, direction='in', cmd='SEND', d={'message': 'COMPLETE'}, caller=str(self.id))
 
     def is_recurring(self):
         return True
+
+
+
+    def get_runkwargs(self, **kwargs):
+        return  {
+                          'run_count': self.state_storage_get_prop('run_count'),
+                          'scraper_url': kwargs.get('url_value', None) ,
+                          'data_selectors': self.state_storage_get_prop('data_selectors') ,
+                          'bot_data' : self.bot_data,
+                          'ip': self.ip,
+                          'get_external_ip_addresss': self.get_external_ip_addresss
+                      }
+
+    def get_urlz(self):
+        url_value = self.state_storage_get_prop('json_data').get( 'url', None ).strip()
+        return url_value, self.get_state_static_prop(prop=url_value , default_value=None, dict_sub=None), self.get_state_static_prop(prop=url_value + '.status' , default_value=None, dict_sub=None)
+
+
+    def store_state_vals(self, message_list=None, url_value=None, scraping=True, data_selector=None, publish_to=None):
+        self.state_storage_append_val(prop='message_list', val=message_list)
+        self.state_storage_store_prop(prop='current_state', dict_sub='current_url', val=url_value)
+        self.state_storage_store_prop(prop='current_state', dict_sub='scraping_page', val=scraping)
+        self.state_storage_store_prop(prop='data_selector', val=data_selector)
+        self.state_storage_store_prop(prop='publish_to', val=publish_to)
+        if not '?' in url_value:
+            self.state_storage_store_prop(prop='start_url', val=url_value + '?ts={timestamp}'.format( timestamp = str(time.time() * randrange(1000000) ).split('.')[0]) ) 
+        else:
+            self.state_storage_store_prop(prop='start_url', val=url_value) 
+
+
+    def poststate(self, **kwargs):
+        v = kwargs.get('scraped_result', None)
+        self.state_storage_store_prop(prop='output_dict', dict_sub='publish_to', val=self.state_storage_get_prop('json_data').get('publish_event', None))
+        self.state_storage_store_prop(prop='output_dict', dict_sub='recursive', val=self.state_storage_get_prop('json_data').get('recursive', False))
+        v[self.state_storage_get_prop('json_data').get('id_property', 'id')] = self.unique_id(global_id=True, cache_manager=self.cache_manager)
+        v['id_property'] = self.state_storage_get_prop('json_data').get('id_property', 'id')
+        v['parent_id_property'] = self.state_storage_get_prop('json_data').get('parent_id_property', 'id')
+        v[ v['id_property'] ] = self.state_storage_get_prop('json_data').get( v['id_property'], None )
+        v[ v['parent_id_property'] ] = self.state_storage_get_prop('json_data').get( v['parent_id_property'], None )
+        v['publish_to_event'] = self.state_storage_get_prop('json_data').get('publish_to_event', None)
+        self.store_state_static_prop(prop=str(v[ v['id_property'] ]) +'.hash', val=v['hash'] , dict_sub=None)
+        self.store_state_static_prop(prop=str(v[ v['id_property'] ]) +'.url', val=v['current_url'] , dict_sub=None)
+        self.store_state_static_prop(prop=str(v[ v['id_property'] ]) +'.ip', val=str(self.ip) , dict_sub=None)
+        self.store_state_static_prop(prop=v['hash'] +'.id', val=str(v[ v['id_property'] ]) , dict_sub=None)
+        self.store_state_static_prop(prop=v['current_url'] +'.id', val=str(v[ v['id_property'] ]) , dict_sub=None)
+        self.store_state_static_prop(prop=str(self.ip) +'.id', val=str(v[ v['id_property'] ]) , dict_sub=None)
+
+
+    def __run_scr(self, url_value=None, **run_kwargs):
+        c, v = self.run_commands(**run_kwargs)
+        url_verified = self.get_state_static_prop(prop=v['hash'] , default_value=None, dict_sub=None)
+        while not url_verified == url_value:
+            c, v = self.run_commands(**run_kwargs)
+            url_verified = self.get_state_static_prop(prop=v['hash']+'.fullvalue' , default_value=None, dict_sub=None)
+        return c, v, url_verified
+
+
+    def synch_results(self, scraped_result=None):
+        if scraped_result.get('current_url', None) and not scraped_result.get('scraper_url', None) == scraped_result.get('current_url', None):
+            print('scraper_url and current_url mismatch [%s,%s]' % ( scraped_result.get('scraper_url', None) , scraped_result.get('current_url', None)))
+            scraped_result['scraper_url'] = scraped_result['current_url']
+        elif  scraped_result.get('current_url', None):
+            print('urls are in synch at %s - %s' % (scraped_result.get('scraper_url', None), scraped_result.get('current_url', None)))
+
+    def republish_if_necessary(self, scraped_result=None):
+        if  scraped_result.get('current_url', None):
+            if self.state_storage_get_prop('json_data').get( 'data_selector', None ) and self.state_storage_get_prop('json_data').get( 'data_selector', None ).get('data_selectors', None) and self.state_storage_get_prop('json_data').get( 'data_selector', None ).get('data_selectors', None).get('republisher_css', None):
+                republish_urls = self.republish_format(json_data=scraped_result, parent_url=scraped_result['current_url'] , parent_id=self.state_storage_get_prop('json_data').get( scraped_result['id_property'], None ), republish_css=self.state_storage_get_prop('json_data').get( 'data_selector', None ).get('data_selectors', None).get('republisher_css', None) )
+                if len( republish_urls ) > 0:
+                    scraped_result['republish_urls'] = republish_urls
+                    self.output_data(output=scraped_result, **self.state_storage_get_prop('output_dict'))
+                else:
+                    print('***** error - no republish_urls found')
+            elif self.state_storage_get_prop('json_data').get( 'data_selector', None ) and self.state_storage_get_prop('json_data').get( 'data_selector', None ).get('data_selectors', None) and self.state_storage_get_prop('json_data').get( 'data_selector', None ).get('data_selectors', None).get('republisher_css', None) is None:
+                print('output is being sent key count is %s -- republisher_css is not set ' % str(len(scraped_result.keys())))
+                self.output_data(output=scraped_result, **self.state_storage_get_prop('output_dict'))
+
+    def reset_resources(self, scrape_command=None, scraped_result=None, run_kwargs=None, url_value=None, url_verified=None, url_verified_status=None):
+        self.state_storage_store_prop(prop='current_state', dict_sub='scraping_page', val=False)
+        self.state_storage_store_prop(prop='start_url', val=None)
+        self.state_storage_store_prop(prop='output_dict', val=dict())
+        self.send_complete()
+        self.state_storage_increment_val(prop='run_count', val=1)
+        self.__del_rscs(scrape_command=scrape_command, scraped_result=scraped_result, run_kwargs=run_kwargs, url_value=url_value, url_verified=url_verified, url_verified_status=url_verified_status)
+        print('<< [%s] releasing producer lock >> ' % (str(self.id)))
+
+    def __del_rscs(self, scrape_command=None, scraped_result=None, run_kwargs=None, url_value=None, url_verified=None, url_verified_status=None):
+        del scrape_command
+        del scraped_result
+        del run_kwargs
+        del url_value
+        del url_verified
+        del url_verified_status
+        gc.collect()
+ 
+
+
+    def __thread_setup(self):
+        self.state_storage_store_prop(prop='run_count', val=2)
+        self.state_storage_store_prop(prop='exception_count', val=0)
+        self.state_storage_store_prop(prop='run_kwargs', val={'run_count': self.state_storage_get_prop('run_count')})
+        self.state_storage_store_prop(prop='is_started', val=True)
 
     def run(self):
         """
         Thread run method.
         :return:
         """
-        self.state_storage_store_prop(prop='run_count', val=2)
-        self.state_storage_store_prop(prop='exception_count', val=0)
-        self.state_storage_store_prop(prop='run_kwargs', val={'run_count': self.state_storage_get_prop('run_count')})
-        self.state_storage_store_prop(prop='is_started', val=True)
+        self.__thread_setup()
         if not self.stopped():
             if self.is_recurring():
                 self.state_storage_store_prop(prop='exception_count', val=0)
@@ -77,76 +252,32 @@ class HitParadeProducerBot(HitParadeBot):
                     try:
                         if self.state_storage_get_prop('current_state').get('listen_for_urls', False):
                             print('producer is listening for urls....')
-                            if self.state_storage_get_prop('current_state').get('scraping_page', False):
-                                print( '**********************************************Not reading messages - currently scraping %s *******************************************************' % str( self.state_storage_get_prop('current_state')['current_url']))
-                            else:
+                            if not self.state_storage_get_prop('current_state').get('scraping_page', False):
                                 print('not currently scraping any pages. Current url %s ' % str(self.state_storage_get_prop('current_state').get('current_url', None)))
                                 print( '<<<<<<<<waiting for new message...%s >>>>>>>>' % self.id  )
                                 self.state_storage_store_prop(prop='command_message', val=self.next_msg())
                                 if not self.state_storage_get_prop('command_message').get('command', None) == 'SHUTDOWN':
-                                    self.web_driver.create_driver()
-                                    # self.web_driver.driver.maximize_window()
-                                    self.web_driver.driver.implicitly_wait(self.timeout)
                                     self.state_storage_store_prop(prop='json_data', val=self.state_storage_get_prop('command_message').get('message', None)['data'] )
-                                    self.state_storage_append_val(prop='message_list', val=self.state_storage_get_prop('json_data'))
-                                    self.state_storage_store_prop(prop='start_url', val=self.state_storage_get_prop('json_data').get( 'url', None ).strip())
-                                    self.state_storage_store_prop(prop='current_state', dict_sub='current_url', val= self.state_storage_get_prop('start_url'))
-                                    self.state_storage_store_prop(prop='current_state', dict_sub='scraping_page', val=True)
-                                    self.state_storage_store_prop(prop='data_selector', val=self.state_storage_get_prop('json_data').get( 'data_selector', None ))
-                                    self.state_storage_store_prop(prop='publish_to', val=self.state_storage_get_prop('json_data').get( 'publish_to', None ))
-                                    if  self.state_storage_get_prop('start_url'):
-                                        print( 'fetching %s ' %  self.state_storage_get_prop('start_url') )
-                                        self.state_storage_store_prop(prop='scraper_url', val=self.state_storage_get_prop('start_url'))
+                                    url_value, url_verified, url_verified_status = self.get_urlz()
+                                    self.store_state_vals(message_list=self.state_storage_get_prop('json_data'), url_value=url_value, scraping=True, data_selector=self.state_storage_get_prop('json_data').get( 'data_selector', None ), publish_to=self.state_storage_get_prop('json_data').get( 'publish_to', None ))
+                                    run_kwargs = self.get_runkwargs(url_value=url_value)
+                                    c = v = None
+                                    if  url_value and url_verified_status is None and url_verified is None:
+                                        self.state_storage_store_prop( prop='scraper_url', val=url_value )
                                         self.state_storage_store_prop(prop='data_selectors', val=self.state_storage_get_prop('json_data').get('data_selector', {}).get('data_selectors', {}))
-                                        self.state_storage_store_prop(prop='data_selectors',dict_sub='scraper_url', val=self.state_storage_get_prop('start_url'))
-                                        self.state_storage_store_prop(prop='run_kwargs', val={ 'run_count': self.state_storage_get_prop('run_count'), 'scraper_url': self.state_storage_get_prop('start_url') , 'data_selectors': self.state_storage_get_prop('data_selectors') , 'bot_data' : self.bot_data})
-                                        c, v = self.run_commands(**self.state_storage_get_prop('run_kwargs'))
-                                        print('response_keys are....[%s]' % c)
-                                        print(v.keys())
-                                        self.state_storage_store_prop(prop='output_dict', dict_sub='publish_to', val=self.state_storage_get_prop('json_data').get('publish_event', None))
-                                        self.state_storage_store_prop(prop='output_dict', dict_sub='recursive', val=self.state_storage_get_prop('json_data').get('recursive', False))
-                                        v['scraper_url'] = self.state_storage_get_prop('start_url')
-                                        v[self.state_storage_get_prop('json_data').get('id_property', 'id')] = MessagingQueue.unique_id(global_id=True, cache_manager=self.cache_manager)
-                                        v['id_property'] = self.state_storage_get_prop('json_data').get('id_property', 'id')
-                                        v['parent_id_property'] = self.state_storage_get_prop('json_data').get('parent_id_property', 'id')
-                                        v['publish_to_event'] = self.state_storage_get_prop('json_data').get('publish_to_event', None)
-                                        print('***************************************************************** output sent to %s for url %s ******************************************************************************' %(str(v['publish_to_event']), self.state_storage_get_prop('start_url')) )
-                                        if v.get('current_url', None) and not v.get('scraper_url', None) == v.get('current_url', None):
-                                            print('scraper_url and current_url mismatch [%s,%s]' % ( v.get('scraper_url', None) , v.get('current_url', None)))
-                                            v['scraper_url'] = v['current_url']
-                                        elif  v.get('current_url', None):
-                                            print('urls are in synch at %s - %s' % (v.get('scraper_url', None), v.get('current_url', None)))
-                                        if  v.get('current_url', None):
-                                            print( '------------------------  publishing url on publish to to  [%s --> %s --> %s ] ------------------------' % (self.state_storage_get_prop('start_url'), self.state_storage_get_prop('output_dict')['publish_to'], self.state_storage_get_prop('output_dict').get('publish_to_event', None)))
-                                            self.output_data(output=v, **self.state_storage_get_prop('output_dict'))
-                                            self.state_storage_store_prop(prop='current_state', dict_sub='scraping_page', val=False)
-                                            self.state_storage_store_prop(prop='start_url', val=None)
-                                            self.state_storage_store_prop(prop='output_dict', val=dict())
-                                            self.send_complete()
-                                            print('<< [%s] releasing producer lock >> ' % (str(self.id)))
-                                        else:
-                                            print('current_url is none')
-                                    self.web_driver.release_driver()
-                                    self.state_storage_increment_val(prop='run_count', val=1)
-                                    # del c
-                                    # del v
-                                    # gc.collect()
-                                else:
-                                    print('.')
-                        else:
-                            print( '**************************** ERROR PRODUCER BOT UNTESTED CODE *************************************')
-                            if  self.state_storage_get_prop('start_url'): #self.start_url:
-                                self.state_storage_store_prop(prop='scraper_url', val=self.state_storage_get_prop('start_url'))
-                                self.state_storage_store_prop(prop='data_selectors', val=self.state_storage_get_prop('json_data').get('data_selector', {}).get('data_selectors', {}))
-                                self.state_storage_store_prop(prop='data_selectors',dict_sub='scraper_url', val=self.state_storage_get_prop('start_url'))
-                                c, v = self.run_commands(**self.state_storage_get_prop('run_kwargs'))
-                                self.output_data(output=v)
-                            self.state_storage_increment_val(prop='run_count', val=1)
+                                        self.state_storage_store_prop(prop='data_selectors',dict_sub='scraper_url', val=url_value)
+                                        c,v,url_verified = self.__run_scr(url_value=url_value, **run_kwargs)
+                                        self.poststate(scraped_result=v)
+                                        self.synch_results(scraped_result=v)
+                                        self.republish_if_necessary(scraped_result=v)
+                                        self.reset_resources(scrape_command=c, scraped_result=v, run_kwargs=run_kwargs, url_value=url_value, url_verified=url_verified, url_verified_status=url_verified_status)
+                                        print('<< [%s] releasing producer lock >> ' % (str(self.id)))
+                            print('sleep....%s' % str(self.sleep_time)) 
+                            time.sleep( self.sleep_time ) 
                     except:
                         traceback.print_exc()
                         self.state_storage_increment_val(prop='exception_count', val=1)
                         print('<< [%s] releasing producer lock [EXCEPTION] >> ' % (str(self.id)))
-
 
     def run_recurring(self):
         return True

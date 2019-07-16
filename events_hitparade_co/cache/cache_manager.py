@@ -277,12 +277,10 @@ class CacheManager:
 
         def get_unique_id(self, new_id=None):
             is_unique, llen = self.is_globally_unique(new_id=new_id)
-            print('%s unique check is %s, %s' % (str(new_id), str(is_unique), str(llen)))
             if is_unique:
                 unique_ids = self.get_broker().get(self.unique_ids_key, convert=True)
                 unique_ids.append(str(new_id))
                 self.get_broker().set(self.unique_ids_key, unique_ids)
-                print('added unique id %s ' % str(new_id))
                 return True, str(new_id)
             else:
                 return False, str(new_id)
@@ -395,9 +393,25 @@ class CacheManager:
         return CacheManager.instance.get_broker()
 
     @staticmethod
+    def statics():
+        json_val = CacheManager.broker().get('statics')
+        return  json.loads(json_val) if json_val else dict()
+
+    @staticmethod
+    def get_state_static_prop(prop='events', default_value=None, dict_sub=None):
+        json_val = CacheManager.statics()
+        if json_val:
+            if isinstance(json_val.get(prop, default_value), dict) and dict_sub:
+                return json_val.get(prop,default_value).get(dict_sub, default_value)
+            else:
+                return json_val.get(prop, default_value)
+        else:
+            return default_value
+
+    @staticmethod
     def globals():
-        #print( 'ip address for globals is %s ' % CacheManager.broker().get(CacheManager.instance.ip))
-        return  json.loads(CacheManager.broker().get(CacheManager.instance.ip))
+        json_val = CacheManager.broker().get(CacheManager.instance.ip)
+        return  json.loads(json_val)
 
     @staticmethod
     def append_val(prop=None, val=None):
@@ -469,6 +483,38 @@ class CacheManager:
         except:
             traceback.print_exc()
             return None
+
+    @staticmethod
+    def store_state_static_prop(prop='events', val=None, dict_sub=None):
+        def mcon(o):
+            if isinstance(o, datetime):
+                return o.__str__()
+        try:
+            ip_properties_dict = CacheManager.statics()
+            if ip_properties_dict is None:
+                ip_properties_dict = dict()
+            if dict_sub is None:
+                if val is None:
+                    del ip_properties_dict[prop]
+                else:
+                    ip_properties_dict[prop] = val
+            elif not dict_sub is None and isinstance(ip_properties_dict[prop], dict):
+                if val is None:
+                    del ip_properties_dict[prop][dict_sub]
+                else:
+                    ip_properties_dict[prop][dict_sub] = val
+            elif not dict_sub is None and not isinstance(ip_properties_dict[prop], dict):
+                if val is None:
+                    del ip_properties_dict[prop]
+                else:
+                    ip_properties_dict[prop] = val
+            else:
+                return False
+            CacheManager.broker().set( 'statics' , json.dumps(ip_properties_dict, default=mcon) )
+            return True
+        except:
+            traceback.print_exc()
+            return False
 
     @staticmethod
     def store_state_prop(prop='events', val=None, dict_sub=None):

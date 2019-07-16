@@ -10,6 +10,31 @@
         "hash_multiple":  false
     }],
     "wait_for_element.multiple": false,
+    "republisher_css" : {
+        "republishers": ["details"],
+      "details": [{
+        "css":  "div.event-list-table-wrapper",
+        "type": "list",
+        "item": 0
+      },{
+        "css":   "div.tournament",
+        "type": "list",
+        "item": 1
+      },{
+        "css":  "div.js-event-list-tournament-events",
+        "type": "list",
+        "item": 2
+      },{
+        "css":  "a.cell--event-list",
+        "type": "list",
+        "item": 3
+      },{
+        "css":  "href",
+        "type": "object",
+        "base_url": "https://www.sofascore.com",
+        "item": 4
+    }]
+    },
     "is_nested": true,
     "open_url": false,
     "force_refresh": false,
