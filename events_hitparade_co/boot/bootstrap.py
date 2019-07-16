@@ -1,6 +1,7 @@
 import json
 import os
 from events_hitparade_co.factories.factories import HitParadeFactories
+from events_hitparade_co.messaging.messaging import MessagingQueue
 from events_hitparade_co.cache.cache_manager import CacheManager
 from datetime import datetime
 class HitParadeScrapingBootstrapper:
@@ -10,6 +11,8 @@ class HitParadeScrapingBootstrapper:
             json_data = None
             with open(self.config_file) as f:
                 json_data = json.load(f)
+                self.__dict__['ip'] = CacheManager.get_external_ip_addresss()
+                json_data['ip'] = self.__dict__['ip']
                 json_data = self.get_state_storage_stubs(dict_to_update=json_data, cache_manager=self.cache_manager, **kwargs)
                 if json_data:
                     bot_counter = 1
@@ -23,8 +26,11 @@ class HitParadeScrapingBootstrapper:
                     self.global_variables['url_generators'] = json_data.get( 'url_generators', [] )
                     json_data['republisher_data'] = self.url_republisher_data
                     json_data['url_republisher_data'] = self.url_republisher_data
+                    json_data['ip'] = CacheManager.get_external_ip_addresss()
                     self.get_state_storage_stubs(dict_to_update=json_data, cache_manager=self.cache_manager, **kwargs)
-
+                    json_data['wait_for_msg'] = MessagingQueue.wait_for_msg
+                    json_data['send_msg'] = MessagingQueue.send_msg
+                    json_data['unique_id'] = MessagingQueue.unique_id
 
                     for republisher_data in json_data['url_republisher_data']:
                         republisher_data = self.get_state_storage_stubs(dict_to_update=republisher_data, cache_manager=self.cache_manager, **kwargs)
@@ -41,6 +47,9 @@ class HitParadeScrapingBootstrapper:
                         republisher_data['data_selector'] = detail_model_event.get('data_selector_id', None)
                         republisher_data['data_selector_id'] = detail_model_event.get('data_selector_id', None)
                         republisher_data['type_id'] = model_event.get('url_republisher', None)
+                        republisher_data['unique_id'] = MessagingQueue.unique_id
+                        republisher_data['wait_for_msg'] = MessagingQueue.wait_for_msg
+                        republisher_data['send_msg'] = MessagingQueue.send_msg
                     self.global_variables['republisher_data'] = self.url_republisher_data
                     self.global_variables['url_republisher_data'] = self.url_republisher_data
                     ##data_selectors
@@ -58,18 +67,33 @@ class HitParadeScrapingBootstrapper:
                         url_generator['type_id'] = url_event.get('url_generator', None)
                         url_generator['data_selector'] = url_event.get('data_selector_id', None)
                         url_generator['data_selector_id'] = url_event.get('data_selector_id', None)
+                        url_generator['unique_id'] = MessagingQueue.unique_id
+                        url_generator['wait_for_msg'] = MessagingQueue.wait_for_msg
+                        url_generator['send_msg'] = MessagingQueue.send_msg
+                        url_generator['ip'] = CacheManager.get_external_ip_addresss()
                         url_generator = self.get_state_storage_stubs(dict_to_update=url_generator, cache_manager=self.cache_manager, **kwargs)
-
-                    while bot_counter == 1 or not bot_data is None and bot_data['active']:
+                    
+                    bot_key = 'bot.' + str(bot_counter)
+                    bot_data = json_data.get(bot_key, None)
+                    print('bot data counter %s' % str(bot_counter) )
+                    print(' botdata is %s ' % type(bot_data) )
+                    while not bot_data is None:
                         bot_key = 'bot.' + str(bot_counter)
                         bot_data = json_data.get(bot_key, None)
-
+                        if bot_data:
+                            bot_data['ip'] = CacheManager.get_external_ip_addresss() 
+                        print('bot data counter %s is not none' % str(bot_counter) )
                         if bot_data and bot_data['active']:
                             model_event = None if not bot_data.get('model_event_id', None) else event_data.get(bot_data.get('model_event_id', ''), None)
                             url_event = None if not bot_data.get('url_event_id', None) else event_data.get(bot_data.get('url_event_id', ''), None)
                             bot_data['command_processor'] = None if not model_event else model_event.get('command_processor', None)
                             bot_data['url_generator'] = None if not url_event else url_event.get('url_generator', None)
                             bot_data['url_republisher'] = None if not model_event else model_event.get('url_republisher', None)
+                            bot_data['ip'] = CacheManager.get_external_ip_addresss()
+                            bot_data['get_external_ip_addresss'] = CacheManager.get_external_ip_addresss
+                            bot_data['unique_id'] = MessagingQueue.unique_id
+                            bot_data['wait_for_msg'] = MessagingQueue.wait_for_msg
+                            bot_data['send_msg'] = MessagingQueue.send_msg
                             bot_data = self.get_state_storage_stubs(dict_to_update=bot_data, cache_manager=self.cache_manager, **kwargs)
                             url_event_data = event_data.get(bot_data.get('url_event_id', ''), None)
                             model_event_data = event_data.get(bot_data.get('model_event_id', ''), None)
@@ -84,19 +108,20 @@ class HitParadeScrapingBootstrapper:
                                 bot_data["publish_event"] = url_event_data["publish_to"]  if bot_data['bot.type'] == 'publisher' else  url_event_data['subscribe_to']
                                 bot_data["publish_to_event"] = model_event_data["publish_to"]
                         bot_counter += 1
-                        if bot_data:
+                        if bot_data and bot_data['active']:
                             bot_data['cache_manager'] =  self.__dict__['cache_manager']
                             bot_data = self.get_state_storage_stubs(dict_to_update=bot_data, **json_data)
-                            for k in json_data.keys():
-                                if json_data.get(k,None) and isinstance(json_data.get(k,None), str):
-                                    print('json_data -- %s => %s ' % ( k , json_data.get(k, None) ) )
                             bot_data['cache_input_file'] =  self.__dict__['cache_input_file']
                             bot_data['scraper_type'] =  self.__dict__['scraper_type']
                             bot_data['chrome_binary'] =  self.__dict__['chrome_binary']
                             bot_data['scraper_type_parser'] =  self.__dict__['scraper_type_parser']
+                            bot_data['ip'] = CacheManager.get_external_ip_addresss()
+                            bot_data['get_external_ip_addresss'] = CacheManager.get_external_ip_addresss
+                            bot_data['unique_id'] = MessagingQueue.unique_id
+                            bot_data['wait_for_msg'] = MessagingQueue.wait_for_msg
+                            bot_data['send_msg'] = MessagingQueue.send_msg
                             for k in bot_data.get('global_variables', {}).keys():
-                                if bot_data.get(k,None) and isinstance(bot_data.get(k,None), str):
-                                    print('bot_data -- %s => %s ' % ( k , bot_data.get(k, None) ) )
+                                bot_data[k] = bot_data.get('global_variables', {})[k]
                             bot_data['default_parser'] = HitParadeFactories.create(  type_id=json_data.get('scraper_type_parser', None), **json_data )
                             self.bot_data_dictionary.append(bot_data)
             print('environment path for these bots is %s' % os.environ['PATH'])
@@ -115,9 +140,16 @@ class HitParadeScrapingBootstrapper:
             bot_data['state_storage_increment_val'] = CacheManager.increment_val
             bot_data['state_storage_append_val'] = CacheManager.append_val
             bot_data['state_storage_decrement_val'] = CacheManager.decrement_val
+            bot_data['unique_id'] = MessagingQueue.unique_id
+            bot_data['wait_for_msg'] = MessagingQueue.wait_for_msg
+            bot_data['send_msg'] = MessagingQueue.send_msg
             bot_data['state_storage_delete_prop'] = CacheManager.delete_state_prop
             bot_data['state_storage_divide_val'] = CacheManager.divide_val
             bot_data['state_storage_multiply_val'] = CacheManager.multiply_val
+            bot_data['get_state_static_prop'] = CacheManager.get_state_static_prop
+            bot_data['store_state_static_prop'] = CacheManager.store_state_static_prop
+            bot_data['get_external_ip_addresss'] = CacheManager.get_external_ip_addresss 
+            bot_data['ip'] = self.__dict__['ip'] if self.__dict__.get('ip', None) else CacheManager.get_external_ip_addresss()
             global_variables = CacheManager.globals()
             #print('globals are %s ' % json.dumps(global_variables))
             evals = global_variables.get('evals', {})

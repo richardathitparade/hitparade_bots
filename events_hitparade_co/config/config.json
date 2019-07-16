@@ -63,9 +63,9 @@
                 "tennis_json_main.urls" : {
                   "data_selector_id"        :       "tennis_json_main",
                   "event_id"                :       "tennis_json_main.urls",
-                  "publish_to"              :       "events.sports.tennis.games.urls",
+                  "publish_to"              :       "events.urls",
                   "type"                    :       "urls",
-                  "subscribe_to"            :       "events.sports.tennis.games.urls.processors",
+                  "subscribe_to"            :       "events.urls.processors",
                   "append_pid"              :       true,
                   "recursive"               :       false,
                   "model_id"                :       "tennis_json_main.models",
@@ -87,9 +87,9 @@
                 "tennis_json_details.urls" :  {
                   "data_selector_id"        :       "tennis_json_details",
                   "event_id"                :       "tennis_json_details.urls",
-                  "publish_to"              :       "events.sports.tennis.games.urls",
+                  "publish_to"              :       "events.urls",
                   "type"                    :       "urls" ,
-                  "subscribe_to"            :       "events.sports.tennis.games.urls.processors",
+                  "subscribe_to"            :       "events.urls.processors",
                   "append_pid"              :       true,
                   "recursive"               :       false,
                   "model_id"                :       "tennis_json_details.models"
