@@ -398,6 +398,56 @@ class CacheManager:
         return  json.loads(json_val) if json_val else dict()
 
     @staticmethod
+    def get_next_statics_listitem():
+        return_value = None
+        static_buckets = CacheManager.get_state_static_prop(prop='buckets')
+        for subkey in static_buckets.keys():
+            if return_value is None:
+                bucket_list = static_buckets.get(subkey, [])
+                if len(bucket_list)>0:
+                    return_value = bucket_list.pop()
+                    CacheManager.store_state_static_prop(prop='buckets', val=bucket_list, dict_sub=subkey)
+                    return return_value
+        return return_value
+
+    @staticmethod
+    def get_statics_listitems():
+        full_list = []
+        static_buckets = CacheManager.get_state_static_prop(prop='buckets')
+        if static_buckets:
+            for subkey in static_buckets.keys():
+                full_list += static_buckets.get(subkey, [])
+        else:
+            static_buckets = {}
+            CacheManager.store_state_static_prop(prop='buckets', val=static_buckets)
+        return full_list
+
+    @staticmethod
+    def add_statics_listitem(prop_id='general', val=None):
+        if val: 
+            static_buckets = CacheManager.get_state_static_prop(prop='buckets',dict_sub=prop_id)
+            if static_buckets is None:
+                static_buckets = []   
+            if isinstance(val, list):
+                static_buckets += val
+            else:
+                static_buckets.append(val)
+            CacheManager.store_state_static_prop(prop='buckets', val=static_buckets , dict_sub=prop_id)
+            return True
+        return False
+
+    @staticmethod
+    def get_statics_listitem(prop_id='general', default_val=None):
+        return_value = default_val
+        static_buckets = CacheManager.get_state_static_prop(prop='buckets',dict_sub=prop_id)
+        if static_buckets is None:
+           static_buckets = []   
+        if len(static_buckets) > 0:
+            return_value = static_buckets.pop()      
+            CacheManager.store_state_static_prop(prop='buckets', val=static_buckets , dict_sub=prop_id)
+        return return_value
+
+    @staticmethod
     def get_state_static_prop(prop='events', default_value=None, dict_sub=None):
         json_val = CacheManager.statics()
         if json_val:
@@ -498,7 +548,9 @@ class CacheManager:
                     del ip_properties_dict[prop]
                 else:
                     ip_properties_dict[prop] = val
-            elif not dict_sub is None and isinstance(ip_properties_dict[prop], dict):
+            elif not dict_sub is None and isinstance(ip_properties_dict.get(prop, None) , dict) or ip_properties_dict.get(prop, None) is None:
+                if ip_properties_dict.get(prop, None) is None:
+                    ip_properties_dict[prop] = dict()
                 if val is None:
                     del ip_properties_dict[prop][dict_sub]
                 else:
