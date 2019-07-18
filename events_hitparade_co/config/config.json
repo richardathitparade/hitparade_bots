@@ -12,7 +12,9 @@
     "bot.type": "publisher",
     "url_event_id" : "tennis_json_main.urls",
     "model_event_id" : "tennis_json_main.models",
-    "active": false
+    "active": false,
+    "offset_days" : 0,
+    "days_back": 1825
 },
   "bot.3": {
     "bot.type": "consumer",
@@ -54,7 +56,7 @@
                   "append_pid"              :       true,
                   "recursive"               :       false,
                   "model_id"                :       "tennis_json_main.models",
-                  "url_generator"           :       "SofaScoreMainUrlGenerator"
+                  "url_generator"           :       "UrlGenerator"
                 },
                 "tennis_json_main.models" : {
                   "data_selector_id"        :       "tennis_json_main",
@@ -65,7 +67,6 @@
                   "append_pid"              :       false,
                   "recursive"               :       false,
                   "command_processor"       :       "HitParadeBotScrapeProcessor",
-                  "url_republisher"         :       "SofaScoreDetailsUrlRepublisher",
                   "url_id"                  :       "tennis_json_main.urls",
                   "serializer"              :       "HitParadeTennisGames"
                 },
