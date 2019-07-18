@@ -295,8 +295,6 @@ class HitParadeProducerBot(HitParadeBot):
                                 self.state_storage_store_prop(prop='command_message', val=self.next_msg())
                                 if not self.state_storage_get_prop('command_message').get('command', None) == 'SHUTDOWN':
                                     json_data_value = self.state_storage_get_prop('command_message').get('message', None)['data']
-                                    print(' json_data_value message recieved %s ' % json.dumps( json_data_value ) )
-                                    #self.state_storage_store_prop(prop='json_data', val=self.state_storage_get_prop('command_message').get('message', None)['data'] )
                                     url_value, url_verified, url_verified_status = self.get_urlz(json_data=json_data_value)
                                     self.store_state_vals(message_list=json_data_value , url_value=url_value, scraping=True, data_selector=json_data_value.get( 'data_selector', None ), publish_to=json_data_value.get( 'publish_to', None ))
                                     run_kwargs = self.get_runkwargs(url_value=url_value)

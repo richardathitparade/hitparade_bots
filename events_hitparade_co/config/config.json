@@ -12,9 +12,7 @@
     "bot.type": "publisher",
     "url_event_id" : "tennis_json_main.urls",
     "model_event_id" : "tennis_json_main.models",
-    "active": false,
-    "republisher": false,
-    "republishers" : [ ]
+    "active": false
 },
   "bot.3": {
     "bot.type": "consumer",
@@ -44,19 +42,6 @@
      "base_url"                :       "https://www.sofascore.com/tennis/{new_date}",
      "url_pattern"             :       "%Y-%m-%d",
      "url_event_id"            :       "tennis_json_main.urls"
-    }
-  ],
-  "url_republishers": [
-    {
-      "model_event_id" : "tennis_json_main.models",
-      "detail_model_event_id": "tennis_json_details.models",
-      "url_event_id" : "tennis_json_details.urls",
-      "base_url" : "https://www.sofascore.com",
-      "match_attribute": "href",
-      "root_css": "div.event-list-table-wrapper",
-      "tournament_css" : "div.tournament",
-      "match_list_css" : "div.js-event-list-tournament-events",
-      "match_css" : "a.cell--event-list"
     }
   ],
   "events" : {

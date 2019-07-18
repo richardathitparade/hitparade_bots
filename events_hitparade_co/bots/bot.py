@@ -218,13 +218,11 @@ class HitParadeBot(Thread):
         :param output: dict or string to output
         :return:
         """
-        print(output)
         output_type = kwargs.get('output_type', 'cache')
         if output_type:
             if output_type=='cache':
                 evts = event if event else kwargs.get('event', kwargs.get('publish_to', None))
                 if isinstance(evts, str):
-                    print('(3) publishing to cache %s , output %s ' % (evts, str(output)))
                     self.cache_manager.publish_data( event=evts,
                                                recursive=kwargs.get('recursive', False),
                                                output=output,
@@ -233,14 +231,12 @@ class HitParadeBot(Thread):
                 elif isinstance(evts, list):
                     for e in evts:
                         if isinstance(e, str):
-                            print('(1) publishing to cache %s , output %s ' % (e, str(output)))
                             self.cache_manager.publish_data(event=e,
                                                       recursive=kwargs.get('recursive', False),
                                                       output=output,
                                                       pid=self.id,
                                                       append_pid=kwargs.get('append_pid', False))
                         elif isinstance(e, dict):
-                            print('(2) publishing to cache %s , output %s ' % (e.get('name', e.get('event', None)), str(output)))
                             self.cache_manager.publish_data(event=e.get('name', e.get('event', None)),
                                                       recursive=e.get('recursive', False),
                                                       output=output,
@@ -381,6 +377,8 @@ class HitParadeBot(Thread):
         kwargs_v['cache_input_file'] =  self.state_storage_get_prop('cache_input_file')
         kwargs_v['cache_manager'] = self.cache_manager
         kwargs_v['cache_output_component_func'] = self.cache_output_component_func
+        kwargs_v['ip'] = self.ip
+        kwargs_v['get_external_ip_addresss'] = self.get_external_ip_addresss
         kwargs_v['id'] = unique_id
         kwargs_v['default_parser'] = self.default_parser
         for k in self.__dict__.keys():
