@@ -21,37 +21,14 @@ class HitParadeScrapingBootstrapper:
                     CacheManager.store_state_prop(prop='events', val=event_data)
                     json_data_selectors = json_data.get( 'data_selectors', [] )
                     self.url_generator_data = json_data.get( 'url_generators', [] )
-                    self.url_republisher_data = json_data.get( 'url_republishers', [] )
                     self.global_variables['url_generator_data'] = self.url_generator_data
                     self.global_variables['url_generators'] = json_data.get( 'url_generators', [] )
-                    json_data['republisher_data'] = self.url_republisher_data
-                    json_data['url_republisher_data'] = self.url_republisher_data
                     json_data['ip'] = CacheManager.get_external_ip_addresss()
                     self.get_state_storage_stubs(dict_to_update=json_data, cache_manager=self.cache_manager, **kwargs)
                     json_data['wait_for_msg'] = MessagingQueue.wait_for_msg
                     json_data['send_msg'] = MessagingQueue.send_msg
                     json_data['unique_id'] = MessagingQueue.unique_id
 
-                    for republisher_data in json_data['url_republisher_data']:
-                        republisher_data = self.get_state_storage_stubs(dict_to_update=republisher_data, cache_manager=self.cache_manager, **kwargs)
-                        model_event = event_data.get(republisher_data.get('model_event_id' , None), None)
-                        detail_model_event = event_data.get(republisher_data.get('detail_model_event_id' , None), None)
-                        url_event = event_data.get(republisher_data.get('url_event_id' , None), None)
-                        republisher_data['subscribable_event'] = {
-                            'event' : model_event['publish_to'],
-                            'recursive' : model_event['recursive'],
-                            'append_pid' : model_event['append_pid']
-                        }
-                        republisher_data['publish_to_event'] = url_event['publish_to']
-                        republisher_data['publish_to_model_event'] = detail_model_event['publish_to']
-                        republisher_data['data_selector'] = detail_model_event.get('data_selector_id', None)
-                        republisher_data['data_selector_id'] = detail_model_event.get('data_selector_id', None)
-                        republisher_data['type_id'] = model_event.get('url_republisher', None)
-                        republisher_data['unique_id'] = MessagingQueue.unique_id
-                        republisher_data['wait_for_msg'] = MessagingQueue.wait_for_msg
-                        republisher_data['send_msg'] = MessagingQueue.send_msg
-                    self.global_variables['republisher_data'] = self.url_republisher_data
-                    self.global_variables['url_republisher_data'] = self.url_republisher_data
                     ##data_selectors
                     for data_selector in json_data_selectors:
                         js_open_file = data_selector.get('path', None) + data_selector.get('file', None)
@@ -88,7 +65,6 @@ class HitParadeScrapingBootstrapper:
                             url_event = None if not bot_data.get('url_event_id', None) else event_data.get(bot_data.get('url_event_id', ''), None)
                             bot_data['command_processor'] = None if not model_event else model_event.get('command_processor', None)
                             bot_data['url_generator'] = None if not url_event else url_event.get('url_generator', None)
-                            bot_data['url_republisher'] = None if not model_event else model_event.get('url_republisher', None)
                             bot_data['ip'] = CacheManager.get_external_ip_addresss()
                             bot_data['get_external_ip_addresss'] = CacheManager.get_external_ip_addresss
                             bot_data['get_state_static_prop'] = CacheManager.get_state_static_prop
@@ -177,8 +153,6 @@ class HitParadeScrapingBootstrapper:
         def get_url_generator(self, type_id=None):
             return self.url_generators.get(type_id, None)
 
-        def get_url_republisher(self, type_id=None):
-            return self.url_republishers.get(type_id, None)
 
         def get_bot_data(self):
             return self.bot_data_dictionary
@@ -206,13 +180,6 @@ class HitParadeScrapingBootstrapper:
             return generators[0]
         return None
 
-    @staticmethod
-    def get_url_republisher(type_id=None):
-        republisher_data = HitParadeScrapingBootstrapper.instance.url_republisher_data
-        republishers =  list(filter(lambda x:  x.get('type_id', None) and x.get('type_id', None) == type_id, republisher_data))
-        if republishers and isinstance(republishers, list) and len(republishers) > 0:
-            return republishers[0]
-        return None
 
     @staticmethod
     def boot_up(**kwargs):
