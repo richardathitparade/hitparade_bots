@@ -1,8 +1,10 @@
 from events_hitparade_co.bots.bot import HitParadeBot
 import traceback
+import json
 from events_hitparade_co.components.component import ScraperComponent
 from events_hitparade_co.parsers.beautiful_soup import BeautifulSoupParser
 import time
+import hashlib
 class Scraper(ScraperComponent):
     """
     Class that if necessary logs and then scrapes data.
@@ -29,18 +31,18 @@ class Scraper(ScraperComponent):
         self.scraper_logins = list( map(lambda l: self.cache_manager.cache_output_component_func('ScraperLogin',**l), kwargs.get('scraper_logins', [])))
         self.scraper_prerun_actions = list(map(lambda l: self.cache_manager.cache_output_component_func('ScraperAction',**l) , kwargs.get('scraper_prerun_actions', [])))
         self.scraper_postrun_actions = list(map(lambda l: self.cache_manager.cache_output_component_func('ScraperAction',**l) , kwargs.get('scraper_postrun_actions', [])))
-        #self.data_selectors = self.state_storage_get_prop('data_selectors').get('data_selectors', {})
-        # if isinstance(self.data_selectors, dict):
-        #     self.data_selectors = [self.data_selectors]
         self.sleep_time = kwargs.get('sleep_time', HitParadeBot.DEFAULT_RETRY)
         self.force_refresh = self.state_storage_get_prop('data_selectors').get('force_refresh', False) if not kwargs.get('data_selectors', {}) is None else False
         self.default_parser =  kwargs.get('default_parser', None)                                # BeautifulSoupParser(**kwargs)
-        #if self.state_storage_get_prop('scraper_url') is None and not self.state_storage_get_prop('scraper_url') is None:  #self.data_selectors.get('scraper_url', None) is None:
         self.scraper_url = self.state_storage_get_prop('scraper_url') #self.data_selectors.get('scraper_url', None)
         self.login_if_necessary(**kwargs)
         self.start_scrape_iteration = 1
         self.end_scrape_iteration = 10
         self.current_scrape_iteration = 1
+        self.get_state_static_prop = kwargs.get('get_state_static_prop', None)
+        self.ip = kwargs.get('ip', None)
+        self.get_external_ip_addressesss = kwargs.get('get_external_ip_adressesss', None)
+        self.check_for_element = self.state_storage_get_prop('data_selectors').get('check_for_element', None) if not self.state_storage_get_prop('data_selectors') is None else None
         self.wait_for_element = self.state_storage_get_prop('data_selectors').get('wait_for_element', None) if not self.state_storage_get_prop('data_selectors') is None else None
         self.wait_for_element_multiple = self.state_storage_get_prop('data_selectors').get('wait_for_element.multiple', False) if not self.state_storage_get_prop('data_selectors') is None else False
         self.wait_for_element_sleep_time = self.state_storage_get_prop('data_selectors').get('wait_for_element.sleep_time', 2) if not self.state_storage_get_prop('data_selectors') is None else 2
@@ -146,6 +148,18 @@ class Scraper(ScraperComponent):
                                                 card_dict[k] = v
         return card_dict
 
+    def scrape_hash(self, url=None):
+        text_values = self.default_parser.get_text(css_selector=self.check_for_element, is_multiple=True, sub_element=None, log_exceptions=False)
+        if len( text_values.keys() ) == 0 or text_values.get('text', None) is None:
+            return None, None, None
+        else:
+            text_to_hash = str( text_values['text'] ).encode( 'utf-8' )
+            text_to_hash_url = (str(text_to_hash) + str(url)).encode('utf-8') 
+            print(' ********************************************************** url[%s] <--> current_url[%s] ****************************************************************' % ( url, self.scraper_url ) )
+            if not 'hp_ts=' in url :
+                text_to_hash_curl = (str(text_to_hash) + str(self.scraper_url)).encode('utf-8')
+                return hashlib.sha224( text_to_hash ).hexdigest(), hashlib.sha224( text_to_hash_url ).hexdigest(), hashlib.sha224( self.scraper_url.encode('utf-8') ).hexdigest()
+            return hashlib.sha224( text_to_hash ).hexdigest(), hashlib.sha224( text_to_hash_url ).hexdigest(), None
 
     def scrape_one_element(self, selector=None, sub_element=None, attributes=None, scrape_types=None, iframe_index=0, log_exceptions=False ):
         scrape_property = dict()
@@ -244,6 +258,7 @@ class Scraper(ScraperComponent):
                                                                                 scrape_types=scrape_types_,
                                                                                 sub_element=new_sub_element.get(selector, {}).get('element', None))
                         scraped_data = add_new_property(scraped_data, sub_element_scraped_data, internal_selector)
+        #print( 'returning scraped_data %s '  % json.dumps(scraped_data) )
         return scraped_data
 
     def run_actions_and_remove(self,actions=[], **kwargs):
@@ -294,6 +309,8 @@ class Scraper(ScraperComponent):
         if not self.state_storage_get_prop('data_selectors') is None:
             self.default_parser.reload_content()
             scraped_data['current_url'] = self.driver.current_url
+            scraped_data['forwarded'] = not 'hp_ts=' in scraped_data['current_url']
+            print('********* ********* ********* ********* ********* ********* *********  ******* current_url has been forwarded [%s] [%s] [%s]  ********* ********* ********* ********* ********* ********* ' % ( str(scraped_data['forwarded']), self.driver.current_url, self.scraper_url ) )
             for data_selector_dict in self.state_storage_get_prop('data_selectors').get('data_selectors', []): #self.data_selectors:
                 if not data_selector_dict.get('scraper_url', None) is None and not data_selector_dict.get('scraper_url', None) ==self.scraper_url:
                     self.scraper_url = data_selector_dict['scraper_url']
@@ -305,10 +322,12 @@ class Scraper(ScraperComponent):
                         print('waiting for %s ' % selector)
                         self.wait_for_component()
                         try:
+                            #print('scraping  data dict ')
                             scraped_data_dict = self.scrape_nested_selectors(prefix=None,
                                                                                           selector=selector,
                                                                                           data_selector_dict=data_selector_dict,
                                                                                           sub_element=None)
+                            #print('returning scrape of %s ' % json.dumps( scraped_data_dict ) )
                             if not scraped_data_dict is None and isinstance(scraped_data_dict, dict):
                                 scraped_data.update(scraped_data_dict)
                             else:
@@ -330,6 +349,59 @@ class Scraper(ScraperComponent):
 
     def exec(self,**kwargs):
         scraper_vals = self.scrape_data(**kwargs)
+        scraper_url_stripped = self.scraper_url if not 'hp_ts=' in self.scraper_url else self.scraper_url.split('?')[0].strip()
+        url_stripped = scraper_vals['current_url'].split('?')[0] if '?' in scraper_vals['current_url'] else scraper_vals['current_url']
+        scraper_vals['hash'], scraper_vals['hash_wurl'], hash_curl = self.scrape_hash(url=url_stripped)
+        if self.get_state_static_prop(prop=scraper_vals['hash'], default_value=None, dict_sub=None) is None:
+            url_stripped = scraper_vals['current_url'].split('?')[0] if '?' in scraper_vals['current_url'] else scraper_vals['current_url']
+            first_status  = ['scraped']
+            print('-------------------------------------------  storing hash (%s, %s) --> url[%s] [%s] --------------------------------------------------------' % ( scraper_vals['hash'], scraper_vals['hash_wurl'], url_stripped, self.scraper_url) )
+            url_listing = [url_stripped, self.scraper_url]
+            if scraper_vals['forwarded']: 
+                print('********** ********** ********** ********** ********** forwarded setup ********** ********** ********** ********** ********** ')
+                self.store_state_static_prop(prop=scraper_vals['hash'], val=url_listing, dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash_wurl'], val=url_stripped, dict_sub=None)
+                self.store_state_static_prop(prop=hash_curl, val=self.scraper_url , dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash']+'.fullvalue', val=url_listing, dict_sub=None)
+                self.store_state_static_prop(prop=url_stripped, val=scraper_vals['hash'], dict_sub=None)
+                self.store_state_static_prop(prop=self.scraper_url, val=scraper_vals['hash'], dict_sub=None)
+                self.store_state_static_prop(prop=url_stripped+'.stripped', val=scraper_vals['current_url'], dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['current_url']+'.stripped', val=url_stripped, dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['current_url'], val=scraper_vals['hash'], dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash']+'.status', val=first_status, dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash_wurl']+'.status', val=first_status, dict_sub=None)
+                self.store_state_static_prop(prop=self.scraper_url+'.status', val=first_status, dict_sub=None)
+                self.store_state_static_prop(prop=url_stripped+'.status', val=first_status, dict_sub=None)
+                self.store_state_static_prop(prop=self.scraper_url+'.status', val=first_status, dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['current_url'] +'.status', val=first_status, dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['current_url'] +'.stored_bye', val=str(self.id) , dict_sub=None)
+                self.store_state_static_prop(prop=self.scraper_url+'.stored_bye', val=str(self.id) , dict_sub=None)
+                self.store_state_static_prop(prop=url_stripped +'.stored_bye.id', val=str(self.id) , dict_sub=None)
+                self.store_state_static_prop(prop=self.scraper_url + '.stored_bye.id', val=str(self.id) , dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash'] +'.stored_bye.id', val=str(self.id) , dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash_wurl'] +'.stored_bye.id', val=str(self.id) , dict_sub=None)
+                self.store_state_static_prop(prop=self.scraper_url +'.stored_bye.id', val=str(self.id) , dict_sub=None)
+                self.store_state_static_prop(prop=url_stripped +'.stored_bye.ip', val=str(self.ip) , dict_sub=None)
+                self.store_state_static_prop(prop=self.scraper_url +'.stored_bye.ip', val=str(self.ip) , dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash'] +'.stored_bye.ip', val=str(self.ip) , dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash_wurl'] +'.stored_bye.ip', val=str(self.ip) , dict_sub=None)
+                self.store_state_static_prop(prop=self.scraper_url +'.stored_bye.ip', val=str(self.ip) , dict_sub=None)
+            else:
+                self.store_state_static_prop(prop=scraper_vals['hash'], val=url_stripped, dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash_wurl'], val=url_stripped, dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash']+'.fullvalue', val=scraper_vals['current_url'], dict_sub=None)
+                self.store_state_static_prop(prop=url_stripped, val=scraper_vals['hash'], dict_sub=None)
+                self.store_state_static_prop(prop=url_stripped+'.stripped', val=scraper_vals['current_url'], dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['current_url']+'.stripped', val=url_stripped, dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['current_url'], val=scraper_vals['hash'], dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash']+'.status', val=str(first_status), dict_sub=None)
+                self.store_state_static_prop(prop=url_stripped+'.status', val=str(first_status), dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['current_url'] +'.status', val=str(first_status), dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['current_url'] +'.stored_bye', val=str(self.id) , dict_sub=None)
+                self.store_state_static_prop(prop=url_stripped +'.stored_bye.id', val=str(self.id) , dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash'] +'.stored_bye.id', val=str(self.id) , dict_sub=None)
+                self.store_state_static_prop(prop=url_stripped +'.stored_bye.ip', val=str(self.ip) , dict_sub=None)
+                self.store_state_static_prop(prop=scraper_vals['hash'] +'.stored_bye.ip', val=str(self.ip) , dict_sub=None)
         self.respond(scraper_vals)
         return scraper_vals
 
