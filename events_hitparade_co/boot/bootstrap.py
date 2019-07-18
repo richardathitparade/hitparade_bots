@@ -91,6 +91,11 @@ class HitParadeScrapingBootstrapper:
                             bot_data['url_republisher'] = None if not model_event else model_event.get('url_republisher', None)
                             bot_data['ip'] = CacheManager.get_external_ip_addresss()
                             bot_data['get_external_ip_addresss'] = CacheManager.get_external_ip_addresss
+                            bot_data['get_state_static_prop'] = CacheManager.get_state_static_prop
+                            bot_data['get_statics_listitems'] = CacheManager.get_statics_listitems
+                            bot_data['get_next_statics_listitem'] = CacheManager.get_next_statics_listitem
+                            bot_data['get_statics_listitem'] = CacheManager.get_statics_listitem
+                            bot_data['add_statics_listitem'] = CacheManager.add_statics_listitem
                             bot_data['unique_id'] = MessagingQueue.unique_id
                             bot_data['wait_for_msg'] = MessagingQueue.wait_for_msg
                             bot_data['send_msg'] = MessagingQueue.send_msg
@@ -147,11 +152,14 @@ class HitParadeScrapingBootstrapper:
             bot_data['state_storage_divide_val'] = CacheManager.divide_val
             bot_data['state_storage_multiply_val'] = CacheManager.multiply_val
             bot_data['get_state_static_prop'] = CacheManager.get_state_static_prop
+            bot_data['get_statics_listitems'] = CacheManager.get_statics_listitems
+            bot_data['get_next_statics_listitem'] = CacheManager.get_next_statics_listitem
+            bot_data['add_statics_listitem'] = CacheManager.add_statics_listitem
+            bot_data['get_statics_listitem'] = CacheManager.get_statics_listitem
             bot_data['store_state_static_prop'] = CacheManager.store_state_static_prop
             bot_data['get_external_ip_addresss'] = CacheManager.get_external_ip_addresss 
             bot_data['ip'] = self.__dict__['ip'] if self.__dict__.get('ip', None) else CacheManager.get_external_ip_addresss()
             global_variables = CacheManager.globals()
-            #print('globals are %s ' % json.dumps(global_variables))
             evals = global_variables.get('evals', {})
             for k in evals.keys():
                 global_variables[k] = eval(evals.get(k))
