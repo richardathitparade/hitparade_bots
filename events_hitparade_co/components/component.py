@@ -3,6 +3,8 @@ from events_hitparade_co.bots.bot import HitParadeBot
 from events_hitparade_co.registration.registration import RegisterLeafClasses
 from abc import abstractmethod
 from selenium.webdriver.common.keys import Keys
+import time
+from random import randrange
 class ScraperComponent:
 
     __metaclass__ = RegisterLeafClasses
@@ -25,6 +27,7 @@ class ScraperComponent:
         self.__dict__ = dict(list(kwargs.items()) + list(self.__dict__.items()))
         self.driver = kwargs.get('driver', None)
         self.scraper_url =  self.state_storage_get_prop('scraper_url')  #kwargs.get('scraper_url', None)
+        self.scraper_url = self.reformat_scraper_url()
         self.retry_count = kwargs.get('retry_count', HitParadeBot.DEFAULT_RETRY)
         self.command = kwargs.get('command', None)
         self.open_url = self.state_storage_get_prop('data_selectors').get('open_url', True) #kwargs.get('data_selectors', {}).get('open_url', True)
@@ -38,13 +41,24 @@ class ScraperComponent:
         except:
             print('exception making parser')
             traceback.print_exc()
-        #scraper component web driver
         self.use_once = kwargs.get('use_once', False)
         self.use_until_failure = kwargs.get('use_until_failure', False)
         self.web_driver = kwargs.get('web_driver', None)
-        print('ScrapeComponent init open()')
         self.force_refresh = kwargs.get('force_refresh', False)
-        # self.open()
+        self.get_external_ip_addressesss = kwargs.get('get_external_ip_adressesss', None)
+
+
+    def reformat_scraper_url(self):
+        if '?' in self.scraper_url:
+            if not 'hp_ts=' in self.scraper_url:
+                return self.scraper_url + '&hp_ts={timestamp}'.format( timestamp = str(time.time() * randrange(1000000) ).split('.')[0])
+            else:
+                return self.scraper_url
+        else:
+            if not 'hp_ts=' in self.scraper_url:
+                return self.scraper_url + '?hp_ts={timestamp}'.format( timestamp = str(time.time() * randrange(1000000) ).split('.')[0])
+            else:
+                return self.scraper_url
 
     @abstractmethod
     def exec(self,**kwargs):
@@ -96,7 +110,8 @@ class ScraperComponent:
         Returns the str scraper url
         :return: str scraper_url
         """
-        return self.scraper_url
+        
+        return self.reformat_scraper_url()
 
     def get_retry_count(self):
         """
@@ -119,14 +134,14 @@ class ScraperComponent:
         :return: bool True if opened and False if not opened.
         """
         try:
-            print('open( open_url=%s, force_refresh=%s, scraper_url=%s)'%( str(self.open_url), str(self.force_refresh), str(self.scraper_url)))
-            if ((not self.open_url) or self.force_refresh) and not self.driver is None and not self.scraper_url is None:
-                print( 'refresh %s ' % self.scraper_url )
-                self.driver = self.web_driver.driver
-                self.driver.get(self.scraper_url)
+            print('open( open_url=%s, force_refresh=%s, scraper_url=%s)'%( str(self.open_url), str(self.force_refresh), str(self.get_scraper_url())))
+            if ((not self.open_url) or self.force_refresh) and not self.driver is None and not self.get_scraper_url() is None:
+                print( 'refresh %s ' % self.get_scraper_url() )
+                self.driver = self.web_driver.driver 
+                print('---------------------------------- open value is scraper url %s --------------------------- ' % self.get_scraper_url())
+                self.driver.get(self.get_scraper_url())
+                self.driver.refresh()
                 self.driver.implicitly_wait(15)
-                # self.driver.refresh()
-                # self.driver.find_element_by_css_selector('body').send_keys(Keys.F5)
                 self.parser_kwargs['driver'] = self.driver
                 self.parser_kwargs['web_driver'] = self.web_driver
                 try:

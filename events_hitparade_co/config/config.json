@@ -13,8 +13,8 @@
     "url_event_id" : "tennis_json_main.urls",
     "model_event_id" : "tennis_json_main.models",
     "active": false,
-    "republisher": true,
-    "republishers" : [  { "type_id" : "SofaScoreDetailsUrlRepublisher" } ]
+    "republisher": false,
+    "republishers" : [ ]
 },
   "bot.3": {
     "bot.type": "consumer",

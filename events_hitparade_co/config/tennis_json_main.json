@@ -32,6 +32,8 @@
         "css":  "href",
         "type": "object",
         "base_url": "https://www.sofascore.com",
+        "model_event_id" : "tennis_json_details.models",
+        "data_selector_id" : "tennis_json_details",
         "item": 4
     }]
     },
