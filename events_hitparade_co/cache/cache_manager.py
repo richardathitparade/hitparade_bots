@@ -463,7 +463,7 @@ class CacheManager:
     @staticmethod
     def globals():
         json_val = CacheManager.broker().get(CacheManager.instance.ip)
-        return  json.loads(json_val)
+        return  json.loads(json_val) if json_val else {}
 
     @staticmethod
     def append_val(prop=None, val=None):
