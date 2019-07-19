@@ -401,6 +401,8 @@ class CacheManager:
     def get_next_statics_listitem():
         return_value = None
         static_buckets = CacheManager.get_state_static_prop(prop='buckets')
+        if static_buckets is None:
+            static_buckets = {}
         for subkey in static_buckets.keys():
             if return_value is None:
                 bucket_list = static_buckets.get(subkey, [])

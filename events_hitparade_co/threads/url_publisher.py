@@ -20,6 +20,7 @@ class UrlPublisher(Thread):
         self.event_subscriptions[self.subscribe_event] = dict()
         self.event_subscriptions[self.subscribe_event]['subscriber'] = rc if r else None
         self.event_subscriptions[self.subscribe_event]['result'] = r if r else False
+        print('url generators are %s ' % str( self.url_generators ) )
         self.url_generator_data = list( filter( lambda f: f.get('url_event_id', None)==self.url_event_id, self.url_generators ) )[0]
         self.url_generator_data['publish_event'] = self.publish_event
         self.url_generator_data['publish_to_event'] = kwargs.get( 'publish_to_event', None )
