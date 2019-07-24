@@ -25,11 +25,53 @@
         "div#pjax-container-main.types" : ["element"],
         "div#pjax-container-main.multiple" : "False",
         "div#pjax-container-main.selectors" : [
-          "div.l__cont > div.breadcrumb-container > ul.breadcrumb > li > a",
-          "div.l__cont > div.breadcrumb-container > div.page-title-container > h2.page-title",
-          "div.l__cont > div.page-container > div.l__grid > div.l__col--1"],
+          "div > div.breadcrumb-container",
+          "div > div.page-container > div.l__grid.js-page-layout"
+        ],
 
-        "div.l__cont > div.breadcrumb-container > ul.breadcrumb > li > a.selectors" : ["div.l__cont > div.breadcrumb-container > ul.breadcrumb > li > a"],
+        "div > div.page-container > div.l__grid.js-page-layout.selectors" : ["div"],
+        "div > div.page-container > div.l__grid.js-page-layout.types" :     ["elements"],
+        "div > div.page-container > div.l__grid.js-page-layout.multiple":   "True",
+
+        "div > div.breadcrumb-container.selectors" :                        ["ul.breadcrumb > li > a","div.page-title-container > h2.page-title"],
+        "div > div.breadcrumb-container.types" :                            ["element"],
+        "div > div.breadcrumb-container.multiple":                          "False",
+
+        "div.breadcrumb-container.selectors" :                              ["ul.breadcrumb > li > a","div.page-title-container > h2.page-title"],
+        "div.breadcrumb-container.types" :                                  ["element"],
+        "div.breadcrumb-container.multiple":                                "False",
+
+        "div.selectors":  [
+          "div.js-event-page-header-container > div.details__score-cell",
+          "div.js-details-component-startTime-container > div.cell > div.cell__section >  div.cell__content",
+          "div#event-info-root > div > div > p",
+          "div.js-details-page-bottom-collapse > p",
+          "div.odds-wrapper-details > div.js-event-page-odds-container > div.rel > div.odds__group",
+          "div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__actions > div.cell__section > div.cell__content > button",
+          "div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__stats > div.vote__team",
+          "div.js-event-page-rounds-container > div.js-event > div.rounds-container > table.table--rounds",
+          "div.js-event-page-incidents-container > div.card__content > div.pbp-wrapper > div",
+          "div.js-event-page-streaks-container"
+        ],
+
+        "div.types": ["element" , "attributes"],
+        "div.multiple": "True",
+        "div.attributes" : ["class"],
+
+
+        "ul.breadcrumb > li > a.types" : ["text", "attributes"],
+        "ul.breadcrumb > li > a.multiple" : "True",
+        "ul.breadcrumb > li > a.attributes" : ["href", "class"],
+
+        "div.page-title-container > h2.page-title.types" : ["text"],
+        "div.page-title-container > h2.page-title.multiple" : "False",
+
+        "div.l__cont > div.page-container > div.l__grid.types": ["element"],
+        "div.l__cont > div.page-container > div.l__grid.selectors": ["div.js-event-page-header-container > div.details__score-cell","div.js-event-page-streaks-container"],
+        "div.l__cont > div.page-container > div.l__grid.multiple": "False",
+
+
+
         "div.l__cont > div.breadcrumb-container > ul.breadcrumb > li > a.types" : ["text", "attributes"],
         "div.l__cont > div.breadcrumb-container > ul.breadcrumb > li > a.multiple" : "True",
         "div.l__cont > div.breadcrumb-container > ul.breadcrumb > li > a.attributes" : ["href", "class"],
@@ -38,55 +80,64 @@
         "div.l__cont > div.breadcrumb-container > div.page-title-container > h2.page-title.types" : ["text"],
         "div.l__cont > div.breadcrumb-container > div.page-title-container > h2.page-title.multiple" : "False",
 
+        "div.js-event-page-streaks-container.selectors" :  [ "h3.h-center", "div.l__grid streaks__grid > div.streaks__column"],
+        "div.js-event-page-streaks-container.multiple" :  "False",
+        "div.js-event-page-streaks-container.types" :  ["element"],
 
-        "div.l__cont > div.breadcrumb-container > ul.breadcrumb > li > a.selectors" : ["div.l__cont > div.breadcrumb-container > ul.breadcrumb > li > a"],
-        "div.l__cont > div.breadcrumb-container > ul.breadcrumb > li > a.types" : ["text", "attributes"],
-        "div.l__cont > div.breadcrumb-container > ul.breadcrumb > li > a.multiple" : "True",
-        "div.l__cont > div.breadcrumb-container > ul.breadcrumb > li > a.attributes" : ["href", "class"],
 
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1.types" : ["element"],
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1.multiple"  : "False",
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1.selectors" : [
-                                                                                      "div.details__score-cell",
-                                                                                      "div.js-details-component-startTime-container > div.cell > div.cell__section >  div.cell__content",
-                                                                                      "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-rounds-container > div.js-event > div.rounds-container > table.table--rounds",
-                                                                                      "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-incidents-container > div.card__content > div.pbp-wrapper > div",
-                                                                                      "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-statistics-container > div.statistics-container > ul.nav > li.nav__item > a",
-                                                                                      "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-statistics-container > div.statistics-container > div.statistics > div[id^=statistics-period-]",
-                                                                                      "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__stats > div.vote__team",
-                                                                                      "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.odds-wrapper-details > div.js-event-page-odds-container > div.rel > div.odds__group",
-                                                                                      "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div#event-info-root",
-                                                                                      "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-details-page-bottom-collapse > p",
-                                                                                      "div.l__cont > div.page-container > div.l__grid > l__col--2 > div.js-event-page-streaks-container > div.streaks__grid > div.js-event-team-streaks > div > a",
-                                                                                      "div.l__cont > div.page-container > div.l__grid > l__col--2 > div.js-event-page-streaks-container > div.streaks__grid > div.js-event-team-streaks > div > div > table > tbody > tr"
-                                                                                      ],
 
+        "h3.h-center.types" : ["text"],
+        "h3.h-center.multiple" : "False",
+
+        "div.l__grid streaks__grid > div.streaks__column.types" : ["elements"],
+        "div.l__grid streaks__grid > div.streaks__column.multiple" : "True",
+        "div.l__grid streaks__grid > div.streaks__column.selectors" : ["div > a", "div > table > tbody > tr > td"],
+
+
+         "div > table > tbody > tr > td.types" : ["text"],
+         "div > table > tbody > tr > td.multiple" : "True",
+
+        "div > a.types" :["text" , "attributes"],
+        "div > a.multiple" : "False",
+        "div > a.attributes" : ["href", "class"],
+
+        "div.js-event-page-header-container > div.details__score-cell.types" : ["element"],
+        "div.js-event-page-header-container > div.details__score-cell.multiple" : "False",
+        "div.js-event-page-header-container > div.details__score-cell.selectors" : ["div.details__emblem-container > div > a", "div.cell__section--main > div.cell__content > span > span"],
+
+        "div.details__emblem-container > div > a.types": ["text", "elements", "attributes"],
+        "div.details__emblem-container > div > a.selectors": ["img.img--x56"],
+	    "div.details__emblem-container > div > a.attributes": ["href", "class", "data-team-id", "data-rank"],
+        "div.details__emblem-container > div > a.multiple": "True",
+
+
+        "div.cell__section--main > div.cell__content > span > span.types" : ["text", "attributes"] ,
+        "div.cell__section--main > div.cell__content > span > span.attributes" : ["class"] ,
+        "div.cell__section--main > div.cell__content > span > span.multiple" : "True",
+
+
+        "img.img--x56.types" : ["attributes"],
+        "img.img--x56.multiple" : "True",
+        "img.img--x56.attributes" : ["src", "class", "title", "alt"],
 
         "td.types" : ["text"],
         "td.multiple" : "True",
 
-        "div.l__cont > div.page-container > div.l__grid > l__col--2 > div.js-event-page-streaks-container > div.streaks__grid > div.js-event-team-streaks > div > div > table > tbody > tr.selectors" : ["td"],
-        "div.l__cont > div.page-container > div.l__grid > l__col--2 > div.js-event-page-streaks-container > div.streaks__grid > div.js-event-team-streaks > div > div > table > tbody > tr.types" : ["elements"],
-        "div.l__cont > div.page-container > div.l__grid > l__col--2 > div.js-event-page-streaks-container > div.streaks__grid > div.js-event-team-streaks > div > div > table > tbody > tr.multiple" : "True",
 
 
 
-        "div.l__cont > div.page-container > div.l__grid > l__col--2 > div.js-event-page-streaks-container > div.streaks__grid > div.js-event-team-streaks > div > a.types" : ["text", "attributes"],
-        "div.l__cont > div.page-container > div.l__grid > l__col--2 > div.js-event-page-streaks-container > div.streaks__grid > div.js-event-team-streaks > div > a.attributes" : ["class", "href"],
-        "div.l__cont > div.page-container > div.l__grid > l__col--2 > div.js-event-page-streaks-container > div.streaks__grid > div.js-event-team-streaks > div > a.multiple" : "False",
-
-
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-details-page-bottom-collapse > p.types" : ["text", "attributes"],
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-details-page-bottom-collapse > p.attributes" : [ "class" ],
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-details-page-bottom-collapse > p.multiple" : "True",
+        "div.js-details-page-bottom-collapse > p.types" : ["text", "attributes"],
+        "div.js-details-page-bottom-collapse > p.attributes" : [ "class" ],
+        "div.js-details-page-bottom-collapse > p.multiple" : "True",
 
         "p.types" : ["text"],
         "p.multiple" : "True",
 
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div#event-info-root.types" : ["element", "attributes"],
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div#event-info-root.multiple" : "False",
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div#event-info-root.attributes" : "class",
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div#event-info-root.selectors" : ["p"],
+        "div#event-info-root > div > div > p.types" : ["text"],
+        "div#event-info-root > div > div > p.multiple" : "True",
+
+        "div > div > p.types" : ["text"],
+        "div > div > p.multiple" : "True",
 
         "tbody > tr > td > a > div > span > span.types" : ["attributes", "text"],
         "tbody > tr > td > a > div > span > span.attributes" : ["class"],
@@ -99,9 +150,9 @@
         "div.odds__group-title.types" : ["text"],
         "div.odds__group-title.multiple" : "False",
 
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.odds-wrapper-details > div.js-event-page-odds-container > div.rel > div.odds__group.types" : ["elements"],
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.odds-wrapper-details > div.js-event-page-odds-container > div.rel > div.odds__group.multiple" :  "True",
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.odds-wrapper-details > div.js-event-page-odds-container > div.rel > div.odds__group.selectors" :   ["div.odds__group-title", "table.odds__table"],
+        "div.odds-wrapper-details > div.js-event-page-odds-container > div.rel > div.odds__group.types" : ["elements"],
+        "div.odds-wrapper-details > div.js-event-page-odds-container > div.rel > div.odds__group.multiple" :  "True",
+        "div.odds-wrapper-details > div.js-event-page-odds-container > div.rel > div.odds__group.selectors" :   ["div.odds__group-title", "table.odds__table"],
 
 
         "div.cell__content > div.vote__count.types" : ["attributes", "text"],
@@ -112,10 +163,14 @@
         "div.cell__content > span.vote__pct.attributes" : ["class"],
         "div.cell__content > span.vote__pct.multiple" : "True",
 
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__stats > div.vote__team.types" : ["attributes", "elements"],
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__stats > div.vote__team.multiple" : "True",
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__stats > div.vote__team.attributes" : ["class", "data-width"],
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__stats > div.vote__team.selectors" : ["div.cell__content > div.vote__count", "div.cell__content > span.vote__pct" ],
+        "div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__stats > div.vote__team.types" : ["attributes", "elements"],
+        "div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__stats > div.vote__team.multiple" : "True",
+        "div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__stats > div.vote__team.attributes" : ["class", "data-width"],
+        "div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__stats > div.vote__team.selectors" : ["div.cell__content > div.vote__count", "div.cell__content > span.vote__pct" ],
+
+        "div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__actions > div.cell__section > div.cell__content > button.types" : ["attributes", "text"],
+        "div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__actions > div.cell__section > div.cell__content > button.multiple" : "True",
+        "div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__actions > div.cell__section > div.cell__content > button.multiple" : ["class", "data-vote"],
 
         "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-statistics-container > div.statistics-container > div.statistics > div[id^=statistics-period-].types" : ["attributes", "elements"],
         "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-statistics-container > div.statistics-container > div.statistics > div[id^=statistics-period-].multiple" : "True",
@@ -139,10 +194,10 @@
         "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-statistics-container > div.statistics-container > ul.nav > li.nav__item > a.attributes" : ["href", "data-toggle"],
 
 
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-incidents-container > div.card__content > div.pbp-wrapper > div.types" : ["text","elements" , "attributes"],
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-incidents-container > div.card__content > div.pbp-wrapper > div.multiple" : "True",
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-incidents-container > div.card__content > div.pbp-wrapper > div.selectors" :  ["div.pbp > div.pbp__setcell > div.pbp__setcell-content" , "div.pbp > div.pbp__game-row > div.pbp__game"],
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-incidents-container > div.card__content > div.pbp-wrapper > div.attributes" : ["class"],
+        "div.js-event-page-incidents-container > div.card__content > div.pbp-wrapper > div.types" : ["text","elements" , "attributes"],
+        "div.js-event-page-incidents-container > div.card__content > div.pbp-wrapper > div.multiple" : "True",
+        "div.js-event-page-incidents-container > div.card__content > div.pbp-wrapper > div.selectors" :  ["div.pbp > div.pbp__setcell > div.pbp__setcell-content" , "div.pbp > div.pbp__game-row > div.pbp__game"],
+        "div.js-event-page-incidents-container > div.card__content > div.pbp-wrapper > div.attributes" : ["class"],
 
 
         "div.pbp__game-content.multiple" : "True",
@@ -157,13 +212,9 @@
         "div.pbp > div.pbp__setcell > div.pbp__setcell-content.multiple" : "True",
 
 
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-rounds-container > div.js-event > div.rounds-container > table.table--rounds.types" : [ "element"],
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-rounds-container > div.js-event > div.rounds-container > table.table--rounds.selectors" : [
-                                                                                                                                                                                       "thead > tr > th",
-                                                                                                                                                                                       "tbody > tr > td > span",
-                                                                                                                                                                                       "tfoot > tr > th"
-        ],
-        "div.l__cont > div.page-container > div.l__grid > div.l__col--1 > div.js-event-page-rounds-container > div.js-event > div.rounds-container > table.table--rounds.multiple" : "False",
+        "div.js-event-page-rounds-container > div.js-event > div.rounds-container > table.table--rounds.types" : [ "element"],
+        "div.js-event-page-rounds-container > div.js-event > div.rounds-container > table.table--rounds.selectors" : [ "thead > tr > th", "tbody > tr > td > span", "tfoot > tr > th"],
+        "div.js-event-page-rounds-container > div.js-event > div.rounds-container > table.table--rounds.multiple" : "False",
 
         "div.js-details-component-startTime-container > div.cell > div.cell__section >  div.cell__content.types" : ["text"],
         "div.js-details-component-startTime-container > div.cell > div.cell__section >  div.cell__content.multiple" : "True",
@@ -182,13 +233,6 @@
         "tfoot > tr > th.multiple"  : "True",
 
 
-        "div.details__score-cell.types": [
-          "element"
-        ],
-        "div.details__score-cell.multiple": true,
-        "div.details__score-cell.selectors": [
-          "div.details__emblem-container"
-        ],
         "div.details__emblem-container.multiple": false,
         "div.details__emblem-container.selectors": [
           "a.rank",
