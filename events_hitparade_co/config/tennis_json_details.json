@@ -17,6 +17,10 @@
     "open_url": false,
     "force_refresh": true,
     "listen_for_urls": true,
+    "collection" : "tennis_match",
+    "database" : "hitparade_sports",
+    "reformatter" : "HitParadeMatchDetailsSofaReformatter",
+    "database_serializer" : "HitParadeMatchDetailsSofaDbSerializer",
     "data_selectors": [
       {
         "selectors": [
@@ -51,8 +55,20 @@
           "div.js-event-page-vote-container > div.vote-container > div.vote > div.vote__stats > div.vote__team",
           "div.js-event-page-rounds-container > div.js-event > div.rounds-container > table.table--rounds",
           "div.js-event-page-incidents-container > div.card__content > div.pbp-wrapper > div",
+          "div.js-event-page-statistics-container > div.statistics-container > ul.nav > li.nav__item > a",
+          "div.js-event-page-statistics-container > div.statistics-container > div.statistics > div[id^=statistics-period-]",
           "div.js-event-page-streaks-container"
         ],
+        "div.js-event-page-statistics-container > div.statistics-container > div.statistics > div[id^=statistics-period-].types" : ["attributes", "elements"],
+        "div.js-event-page-statistics-container > div.statistics-container > div.statistics > div[id^=statistics-period-].multiple" : "True",
+        "div.js-event-page-statistics-container > div.statistics-container > div.statistics > div[id^=statistics-period-].attributes" : ["class"],
+        "div.js-event-page-statistics-container > div.statistics-container > div.statistics > div[id^=statistics-period-].selectors" : ["div.stat-group-event > div.cell--incident"],
+
+
+        "div.js-event-page-statistics-container > div.statistics-container > ul.nav > li.nav__item > a.types" : ["attributes", "text"],
+        "div.js-event-page-statistics-container > div.statistics-container > ul.nav > li.nav__item > a.multiple" : "True",
+        "div.js-event-page-statistics-container > div.statistics-container > ul.nav > li.nav__item > a.attributes" : ["href", "data-toggle"],
+
 
         "div.types": ["element" , "attributes"],
         "div.multiple": "True",
@@ -103,7 +119,10 @@
 
         "div.js-event-page-header-container > div.details__score-cell.types" : ["element"],
         "div.js-event-page-header-container > div.details__score-cell.multiple" : "False",
-        "div.js-event-page-header-container > div.details__score-cell.selectors" : ["div.details__emblem-container > div > a", "div.cell__section--main > div.cell__content > span > span"],
+        "div.js-event-page-header-container > div.details__score-cell.selectors" : ["div.details__emblem-container > div > a", 
+			"div.cell__section--main > div.cell__content > span > span",
+			"div.cell__section--main > div > span > div"
+			],
 
         "div.details__emblem-container > div > a.types": ["text", "elements", "attributes"],
         "div.details__emblem-container > div > a.selectors": ["img.img--x56"],
@@ -115,6 +134,9 @@
         "div.cell__section--main > div.cell__content > span > span.attributes" : ["class"] ,
         "div.cell__section--main > div.cell__content > span > span.multiple" : "True",
 
+        "div.cell__section--main > div > span > div.types" : ["text", "attributes"],
+        "div.cell__section--main > div > span > div.attributes" : ["class"],
+        "div.cell__section--main > div > span > div.multiple" : "True",
 
         "img.img--x56.types" : ["attributes"],
         "img.img--x56.multiple" : "True",
@@ -208,8 +230,9 @@
         "div.pbp > div.pbp__game-row > div.pbp__game.multiple" : "True",
         "div.pbp > div.pbp__game-row > div.pbp__game.selectors" : ["div.pbp__game-content"],
 
-        "div.pbp > div.pbp__setcell > div.pbp__setcell-content.types" : [ "text" ],
+        "div.pbp > div.pbp__setcell > div.pbp__setcell-content.types" : [ "text", "attributes" ],
         "div.pbp > div.pbp__setcell > div.pbp__setcell-content.multiple" : "True",
+        "div.pbp > div.pbp__setcell > div.pbp__setcell-content.attributes" : ["class"],
 
 
         "div.js-event-page-rounds-container > div.js-event > div.rounds-container > table.table--rounds.types" : [ "element"],
