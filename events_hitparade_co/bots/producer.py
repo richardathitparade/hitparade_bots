@@ -20,11 +20,8 @@ class HitParadeProducerBot(HitParadeBot):
         self.bot_type = kwargs.get( 'bot.type', 'producer' )
         self.state_storage_store_prop(prop='start_url', val=kwargs.get('scraper_url', None))
         self.pp = pp.PrettyPrinter(indent=4)
-        print('************ producer id is set to %s **********************' % self.id )
         self.state_storage_store_prop(prop='producer_id', val=self.id)
         self.get_state_static_prop = kwargs.get('get_state_static_prop', None) 
-        producer_id_check = self.get_state_static_prop('producer_id')
-        print('producer id check is %s ' % str( producer_id_check ) )
         kwargs['web_driver'] = self.web_driver
         self.messaging_thread = Messaging(**kwargs)
         self.messaging_thread.setDaemon(True)
@@ -89,7 +86,9 @@ class HitParadeProducerBot(HitParadeBot):
                         'id_property': id_property,
                         'parent_url': parent_url,
                         'parent_id_property': parent_id_property,
-                        'parent_id' : parent_id
+                        'parent_id' : parent_id,
+                        'reformatter' : css_listing.get('data_selector_id', {}).get('reformatter', None),
+                        'database_serializer' : css_listing.get('data_selector_id', {}).get('database_serializer', None)
                     }
                     if isinstance( json_data, list ):
                         for el in json_data:
@@ -145,7 +144,6 @@ class HitParadeProducerBot(HitParadeBot):
         }
 
     def send_complete(self):
-        print('producer --> self.messaging_thread.id is %s ' % str(self.messaging_thread.id) )
         self.send_msg(id=self.messaging_thread.id, direction='in', cmd='SEND', d={'message': 'COMPLETE'}, caller=str(self.id))
 
     def is_recurring(self):
@@ -185,12 +183,11 @@ class HitParadeProducerBot(HitParadeBot):
             self.state_storage_store_prop(prop='start_url', val=url_value) 
 
 
-    def poststate(self, output_dict=None, **kwargs):
+    def poststate(self, **kwargs):
         v = kwargs.get('scraped_result', None)
         json_data = kwargs.get('json_data', None)
-        output_dict['publish_to'] = json_data.get('publish_event', None)
-        output_dict['event'] = json_data.get('publish_to_event', None)
-        output_dict['recursive'] = json_data.get('recursive', False)
+        self.state_storage_store_prop(prop='output_dict', dict_sub='publish_to', val=json_data.get('publish_event', None))
+        self.state_storage_store_prop(prop='output_dict', dict_sub='recursive', val=json_data.get('recursive', False))
         v[json_data.get('id_property', 'id')] = self.unique_id(global_id=True, cache_manager=self.cache_manager)
         v['id_property'] = json_data.get('id_property', 'id')
         v['parent_id_property'] = json_data.get('parent_id_property', 'id')
@@ -210,15 +207,12 @@ class HitParadeProducerBot(HitParadeBot):
 
     def __run_scr(self, url_value=None, **run_kwargs):
         c, v = self.run_commands(**run_kwargs)
-        #print('command %s ' % c )
-        #print('scraped data init %s ' % json.dumps(v) )
         print('url value for scrape is %s ' % url_value )
         url_verified = self.get_state_static_prop(prop=v['hash'] , default_value=None, dict_sub=None)
         print('********** url_verified is %s , %s ********** **********' % ( type(url_verified), str(url_verified) ) )
         counter = 0
         while isinstance( url_verified, str) and not url_value in url_verified or isinstance( url_verified, list) and not url_value in url_verified:
             c, v = self.run_commands(**run_kwargs)
-            #print('scraped data looping %s ' % json.dumps(v) )
             url_verified = self.get_state_static_prop(prop=v['hash']+'.fullvalue' , default_value=None, dict_sub=None)
             print('********** ********** url_verified is %s , %s ********** **********  ' % ( type(url_verified), str(url_verified) ) )
             url_verified_wurl = self.get_state_static_prop(prop=v['hash']+'.wurl' , default_value=None, dict_sub=None)
@@ -230,38 +224,36 @@ class HitParadeProducerBot(HitParadeBot):
         return c, v, url_verified
 
 
-    def synch_results(self, scraped_result=None, output_dict=None):
+    def synch_results(self, scraped_result=None):
         if scraped_result.get('current_url', None) and not scraped_result.get('scraper_url', None) == scraped_result.get('current_url', None):
             print('scraper_url and current_url mismatch [%s,%s]' % ( scraped_result.get('scraper_url', None) , scraped_result.get('current_url', None)))
             scraped_result['scraper_url'] = scraped_result['current_url']
         elif  scraped_result.get('current_url', None):
             print('urls are in synch at %s - %s' % (scraped_result.get('scraper_url', None), scraped_result.get('current_url', None)))
 
-    def republish_if_necessary(self, scraped_result=None, json_data=None, output_dict=None):
+    def republish_if_necessary(self, scraped_result=None, json_data=None):
         if  scraped_result.get('current_url', None):
             if json_data.get( 'data_selector', None ) and json_data.get( 'data_selector', None ).get('data_selectors', None) and json_data.get( 'data_selector', None ).get('data_selectors', None).get('republisher_css', None):
                 republish_urls = self.republish_format(json_data=scraped_result, parent_url=scraped_result['current_url'] , parent_id=json_data.get( scraped_result['id_property'], None ), republish_css=json_data.get( 'data_selector', None ).get('data_selectors', None).get('republisher_css', None))
                 scraped_result['republish_urls'] = republish_urls
-                self.output_data(output=scraped_result, **output_dict) 
-                print('1) output on republish %s ' % json.dumps( scraped_result ) )
+                self.output_data(output=scraped_result, **self.state_storage_get_prop('output_dict'))
             elif json_data.get( 'data_selector', None ) and json_data.get( 'data_selector', None ).get('data_selectors', None) and json_data.get( 'data_selector', None ).get('data_selectors', None).get('republisher_css', None) is None:
-                self.output_data(output=scraped_result, **output_dict)
-                print('2) output on republish %s ' % json.dumps( scraped_result ) )
+                self.output_data(output=scraped_result, **self.state_storage_get_prop('output_dict'))
 
-    def reset_resources(self, scrape_command=None, scraped_result=None, run_kwargs=None, url_value=None, url_verified=None, url_verified_status=None, json_data=None ):
+    def reset_resources(self, scrape_command=None, scraped_result=None, run_kwargs=None, url_value=None, url_verified=None, url_verified_status=None, json_data=None):
         self.state_storage_store_prop(prop='current_state', dict_sub='scraping_page', val=False)
         self.state_storage_store_prop(prop='start_url', val=None)
+        self.state_storage_store_prop(prop='output_dict', val=dict())
         self.send_complete()
         self.state_storage_increment_val(prop='run_count', val=1)
         self.__del_rscs(scrape_command=scrape_command, scraped_result=scraped_result, run_kwargs=run_kwargs, url_value=url_value, url_verified=url_verified, url_verified_status=url_verified_status, json_data=json_data)
         print('<< [%s] releasing producer lock >> ' % (str(self.id)))
 
-    def __del_rscs(self, scrape_command=None, scraped_result=None, run_kwargs=None, url_value=None, url_verified=None, url_verified_status=None, json_data=None, output_dict=None):
+    def __del_rscs(self, scrape_command=None, scraped_result=None, run_kwargs=None, url_value=None, url_verified=None, url_verified_status=None, json_data=None):
         del scrape_command
         del scraped_result
         del run_kwargs
         del url_value
-        del output_dict
         del url_verified
         del url_verified_status
         del json_data
@@ -288,7 +280,7 @@ class HitParadeProducerBot(HitParadeBot):
             if self.is_recurring():
                 self.state_storage_store_prop(prop='exception_count', val=0)
                 while not self.stopped() and (not self.state_storage_get_prop('exit_on_exception') or (self.state_storage_get_prop('exit_on_exception') and self.state_storage_get_prop('exception_count')==0)):
-                    output_dict = dict()
+                    self.state_storage_store_prop(prop='output_dict', val=dict())
                     try:
                         if self.state_storage_get_prop('current_state').get('listen_for_urls', False):
                             print('producer is listening for urls....')
@@ -307,14 +299,13 @@ class HitParadeProducerBot(HitParadeBot):
                                         self.state_storage_store_prop(prop='data_selectors', val=json_data_value.get('data_selector', {}).get('data_selectors', {}))
                                         self.state_storage_store_prop(prop='data_selectors',dict_sub='scraper_url', val=url_value)
                                         c,v,url_verified = self.__run_scr(url_value=url_value, **run_kwargs)
-                                        self.poststate(scraped_result=v, json_data=json_data_value, output_dict=output_dict)
+                                        self.poststate(scraped_result=v, json_data=json_data_value)
                                         self.synch_results(scraped_result=v)
-                                        self.republish_if_necessary(scraped_result=v, json_data=json_data_value, output_dict=output_dict)
+                                        self.republish_if_necessary(scraped_result=v, json_data=json_data_value)
                                         self.reset_resources(scrape_command=c, scraped_result=v, run_kwargs=run_kwargs, url_value=url_value, url_verified=url_verified, url_verified_status=url_verified_status, json_data=json_data_value)
                                         print('<< [%s] releasing producer lock >> ' % (str(self.id)))
                             print('sleep....%s' % str(self.sleep_time)) 
                             self.__sleep()
-                            self.reset_resources(scrape_command=c, scraped_result=v, run_kwargs=run_kwargs, url_value=url_value, url_verified=url_verified, url_verified_status=url_verified_status, json_data=json_data_value)
                     except:
                         traceback.print_exc()
                         self.state_storage_increment_val(prop='exception_count', val=1)
