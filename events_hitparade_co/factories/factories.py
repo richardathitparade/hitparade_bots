@@ -3,8 +3,7 @@ from events_hitparade_co.output.cache import HitParadeCachePublisherOuput
 from events_hitparade_co.output.default import HitParadeDefaultOuput
 from events_hitparade_co.scrapers.chrome import ChromeWebScraper
 from events_hitparade_co.scrapers.firefox import FirefoxWebScraper
-from events_hitparade_co.url_generators.sofascore_tennis import SofaScoreMainUrlGenerator
-from events_hitparade_co.url_republishers.sofascore_tennis_republisher import SofaScoreDetailsUrlRepublisher
+from events_hitparade_co.url_generators.generator import UrlGenerator
 from events_hitparade_co.components.scraper import Scraper
 from events_hitparade_co.components.action import ScraperAction
 from events_hitparade_co.components.login import ScraperLogin
