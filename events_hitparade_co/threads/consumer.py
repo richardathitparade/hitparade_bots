@@ -3,12 +3,15 @@ import json
 from threading import Thread
 import time
 import traceback
+
 class HitParadeConsumerThread(Thread):
 
     def __init__(self, **kwargs):
         Thread.__init__(self)
         self.__dict__ = dict(list(kwargs.items()) + list(self.__dict__.items()))
         self.__dict__[self.id_property] = MessagingQueue.unique_id(global_id=True, cache_manager=self.cache_manager)
+        self.get_state_static_prop = kwargs.get('get_state_static_prop', None)
+        self.store_state_static_prop = kwargs.get('store_state_static_prop', None)
         self.event_subscriptions = dict()
         self.subscribe_to_events()
         self.cache_output_component_func = kwargs.get('cache_output_component_func', None)
@@ -102,8 +105,12 @@ class HitParadeConsumerThread(Thread):
                         message_dict['type_id'] = self.serializer
                         consumer_args = self.__dict__
                         consumer_args['type_id'] = self.serializer
+                        consumer_args['get_state_static_prop'] = self.get_state_static_prop
+                        consumer_args['store_state_static_prop'] = self.store_state_static_prop
                         if not message_dict['data'].get('scraper_url', None) is None:
-                            message_dict['filename'] =  self.sport_name + '.' + evt + '.' +  message_dict['data'].get('scraper_url', None).split('/')[-1] + '.' +  message_dict['data'].get( message_dict['data'].get('id_property', None), None) + '.json'
+                            message_dict['filename'] =  self.sport_name + '.' +  evt + '.' +  message_dict.get('current_url', None).split('/')[-1] + '.' +  message_dict['data'].get( message_dict['data'].get('id_property', None), None) + '.json'
+                            if message_dict.get('reformatter', None):
+                                message_dict['filename_reformatted'] =  self.sport_name + '.' +  evt + '.' +  message_dict.get('current_url', None).split('/')[-1] + '.' +  message_dict['data'].get( message_dict['data'].get('id_property', None), None) + '.reformatted.json'
                             self.cache_output_component_func(**consumer_args).store(**message_dict)  #process_model(**message_dict)
                     else:
                         print('hitparadeconsumer - noop for event %s' % evt)

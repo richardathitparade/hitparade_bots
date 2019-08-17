@@ -209,6 +209,7 @@ class HitParadeProducerBot(HitParadeBot):
             self.store_state_static_prop(prop=str(self.ip) +'.id', val=str(v[ v['id_property'] ]) , dict_sub=None)
 
 
+
     def __get_all_republish_urls(self, parent_id=None):
         return [obj for obj in self.get_statics_listitems() if obj.get('parent_id', None) == parent_id]
 

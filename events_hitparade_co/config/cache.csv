@@ -1,8 +1,8 @@
 host,port,cache_type,clear
-hp-e1-t2micro-broker.et5b4b.0001.use1.cache.amazonaws.com,6379,broker,true
-hp-e1-t2micro-c1.et5b4b.0001.use1.cache.amazonaws.com,6379,cache,true
-hp-e1-t2micro-c2.et5b4b.0001.use1.cache.amazonaws.com,6379,model_cache,true
-hp-e1-t2micro-c6.et5b4b.0001.use1.cache.amazonaws.com,6379,model_details_cache,true
-hp-e1-t2micro-c3.et5b4b.0001.use1.cache.amazonaws.com,6379,cache1,true
-hp-e1-t2micro-c4.et5b4b.0001.use1.cache.amazonaws.com,6379,model_cache1,true
-hp-e1-t2micro-c5.et5b4b.0001.use1.cache.amazonaws.com,6379,model_details_cache1,true
+hp-e1-t2micro-broker.et5b4b.0001.use1.cache.amazonaws.com,6379,broker,false
+hp-e1-t2micro-c1.et5b4b.0001.use1.cache.amazonaws.com,6379,cache,false
+hp-e1-t2micro-c2.et5b4b.0001.use1.cache.amazonaws.com,6379,model_cache,false
+hp-e1-t2micro-c6.et5b4b.0001.use1.cache.amazonaws.com,6379,model_details_cache,false
+hp-e1-t2micro-c3.et5b4b.0001.use1.cache.amazonaws.com,6379,cache1,false
+hp-e1-t2micro-c4.et5b4b.0001.use1.cache.amazonaws.com,6379,model_cache1,false
+hp-e1-t2micro-c5.et5b4b.0001.use1.cache.amazonaws.com,6379,model_details_cache1,false
