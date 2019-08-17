@@ -79,6 +79,10 @@ class HitParadeProducerBot(HitParadeBot):
                         print('***** else 1 %s '% type(json_data))
                         print('***** jsondata is %s ' % json_data)
                 elif css_listing_type == 'object':
+                    collection = self.state_storage_get_prop('data_selectors').get('collection', None)
+                    database = self.state_storage_get_prop('data_selectors').get('database', None)
+                    reformatter = self.state_storage_get_prop('data_selectors').get('reformatter', None)
+                    database_serializer = self.state_storage_get_prop('data_selectors').get('database_serializer', None)
                     dict_value = {
                         'parent_id_property': parent_id, 
                         'data_selector_id' : css_listing.get('data_selector_id', None),
@@ -87,8 +91,10 @@ class HitParadeProducerBot(HitParadeBot):
                         'parent_url': parent_url,
                         'parent_id_property': parent_id_property,
                         'parent_id' : parent_id,
-                        'reformatter' : css_listing.get('data_selector_id', {}).get('reformatter', None),
-                        'database_serializer' : css_listing.get('data_selector_id', {}).get('database_serializer', None)
+                        'collection' : collection,
+                        'database' : database,
+                        'reformatter' : reformatter,
+                        'database_serializer' : database_serializer
                     }
                     if isinstance( json_data, list ):
                         for el in json_data:
@@ -185,21 +191,23 @@ class HitParadeProducerBot(HitParadeBot):
 
     def poststate(self, **kwargs):
         v = kwargs.get('scraped_result', None)
-        json_data = kwargs.get('json_data', None)
-        self.state_storage_store_prop(prop='output_dict', dict_sub='publish_to', val=json_data.get('publish_event', None))
-        self.state_storage_store_prop(prop='output_dict', dict_sub='recursive', val=json_data.get('recursive', False))
-        v[json_data.get('id_property', 'id')] = self.unique_id(global_id=True, cache_manager=self.cache_manager)
-        v['id_property'] = json_data.get('id_property', 'id')
-        v['parent_id_property'] = json_data.get('parent_id_property', 'id')
-        v[ v['id_property'] ] = json_data.get( v['id_property'], None )
-        v[ v['parent_id_property'] ] = json_data.get( v['parent_id_property'], None )
-        v['publish_to_event'] = json_data.get('publish_to_event', None)
-        self.store_state_static_prop(prop=str(v[ v['id_property'] ]) +'.hash', val=v['hash'] , dict_sub=None)
-        self.store_state_static_prop(prop=str(v[ v['id_property'] ]) +'.url', val=v['current_url'] , dict_sub=None)
-        self.store_state_static_prop(prop=str(v[ v['id_property'] ]) +'.ip', val=str(self.ip) , dict_sub=None)
-        self.store_state_static_prop(prop=v['hash'] +'.id', val=str(v[ v['id_property'] ]) , dict_sub=None)
-        self.store_state_static_prop(prop=v['current_url'] +'.id', val=str(v[ v['id_property'] ]) , dict_sub=None)
-        self.store_state_static_prop(prop=str(self.ip) +'.id', val=str(v[ v['id_property'] ]) , dict_sub=None)
+        if not v.get('current_url', None) is None and ('http://' in  v.get('current_url', None) or 'https://' in v.get('current_url', None)):
+            json_data = kwargs.get('json_data', None)
+            self.state_storage_store_prop(prop='output_dict', dict_sub='publish_to', val=json_data.get('publish_event', None))
+            self.state_storage_store_prop(prop='output_dict', dict_sub='recursive', val=json_data.get('recursive', False))
+            v[json_data.get('id_property', 'id')] = self.unique_id(global_id=True, cache_manager=self.cache_manager)
+            v['id_property'] = json_data.get('id_property', 'id')
+            v['parent_id_property'] = json_data.get('parent_id_property', 'id')
+            v[ v['id_property'] ] = json_data.get( v['id_property'], None )
+            v[ v['parent_id_property'] ] = json_data.get( v['parent_id_property'], None )
+            v['publish_to_event'] = json_data.get('publish_to_event', None)
+            self.store_state_static_prop(prop=str(v[ v['id_property'] ]) +'.hash', val=v['hash'] , dict_sub=None)
+            self.store_state_static_prop(prop=str(v[ v['id_property'] ]) +'.url', val=v['current_url'] , dict_sub=None)
+            self.store_state_static_prop(prop=str(v[ v['id_property'] ]) +'.ip', val=str(self.ip) , dict_sub=None)
+            self.store_state_static_prop(prop=v['hash'] +'.id', val=str(v[ v['id_property'] ]) , dict_sub=None)
+            self.store_state_static_prop(prop=v['current_url'] +'.id', val=str(v[ v['id_property'] ]) , dict_sub=None)
+            self.store_state_static_prop(prop=str(self.ip) +'.id', val=str(v[ v['id_property'] ]) , dict_sub=None)
+
 
 
     def __get_all_republish_urls(self, parent_id=None):
@@ -313,3 +321,4 @@ class HitParadeProducerBot(HitParadeBot):
 
     def run_recurring(self):
         return True
+

@@ -191,3 +191,4 @@ class HitParadeScrapingBootstrapper:
     @staticmethod
     def get_bots(**kwargs):
         return HitParadeScrapingBootstrapper.boot_up(**kwargs).get_bot_data()
+
