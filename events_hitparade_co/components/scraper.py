@@ -207,7 +207,12 @@ class Scraper(ScraperComponent):
                     for i, k in enumerate(all_elements.keys()):
                         if not k == 'element':
                             try:
-                                node_properties[k] = all_elements[k][idx]
+                                if not all_elements is None:
+                                    try:
+                                        node_properties[k] = all_elements[k][idx]
+                                    except:
+                                        pass
+                                        #dont log this one it isnt important.
                             except:
                                 if log_exceptions:
                                     print(' node_properties exception k=%s, idx=%s ' % (str(k), str(idx)))
@@ -311,7 +316,8 @@ class Scraper(ScraperComponent):
             scraped_data['current_url'] = self.driver.current_url
             scraped_data['forwarded'] = not 'hp_ts=' in scraped_data['current_url']
             print('********* ********* ********* ********* ********* ********* *********  ******* current_url has been forwarded [%s] [%s] [%s]  ********* ********* ********* ********* ********* ********* ' % ( str(scraped_data['forwarded']), self.driver.current_url, self.scraper_url ) )
-            for data_selector_dict in self.state_storage_get_prop('data_selectors').get('data_selectors', []): #self.data_selectors:
+            data_selectors = self.state_storage_get_prop('data_selectors')
+            for data_selector_dict in data_selectors.get('data_selectors', []): #self.data_selectors:
                 if not data_selector_dict.get('scraper_url', None) is None and not data_selector_dict.get('scraper_url', None) ==self.scraper_url:
                     self.scraper_url = data_selector_dict['scraper_url']
                     print('scrape_data --> open  ' )
@@ -352,7 +358,7 @@ class Scraper(ScraperComponent):
         scraper_url_stripped = self.scraper_url if not 'hp_ts=' in self.scraper_url else self.scraper_url.split('?')[0].strip()
         url_stripped = scraper_vals['current_url'].split('?')[0] if '?' in scraper_vals['current_url'] else scraper_vals['current_url']
         scraper_vals['hash'], scraper_vals['hash_wurl'], hash_curl = self.scrape_hash(url=url_stripped)
-        if self.get_state_static_prop(prop=scraper_vals['hash'], default_value=None, dict_sub=None) is None:
+        if not url_stripped is None and ('http://' in url_stripped or 'https://' in url_stripped) and self.get_state_static_prop(prop=scraper_vals['hash'], default_value=None, dict_sub=None) is None:
             url_stripped = scraper_vals['current_url'].split('?')[0] if '?' in scraper_vals['current_url'] else scraper_vals['current_url']
             first_status  = ['scraped']
             print('-------------------------------------------  storing hash (%s, %s) --> url[%s] [%s] --------------------------------------------------------' % ( scraper_vals['hash'], scraper_vals['hash_wurl'], url_stripped, self.scraper_url) )
