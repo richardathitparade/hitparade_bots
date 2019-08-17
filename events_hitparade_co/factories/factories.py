@@ -1,18 +1,18 @@
-from events_hitparade_co.messaging.messaging import MessagingQueue
-from events_hitparade_co.output.cache import HitParadeCachePublisherOuput
-from events_hitparade_co.output.default import HitParadeDefaultOuput
+from events_hitparade_co.parsers.beautiful_soup import BeautifulSoupParser
 from events_hitparade_co.scrapers.chrome import ChromeWebScraper
 from events_hitparade_co.scrapers.firefox import FirefoxWebScraper
-from events_hitparade_co.url_generators.generator import UrlGenerator
-from events_hitparade_co.components.scraper import Scraper
-from events_hitparade_co.components.action import ScraperAction
-from events_hitparade_co.components.login import ScraperLogin
-from events_hitparade_co.parsers.selenium import SeleniumParser
-from events_hitparade_co.parsers.beautiful_soup import BeautifulSoupParser
 from events_hitparade_co.command_processor.login import HitParadeBotLoginProcessor
 from events_hitparade_co.command_processor.open import HitParadeBotOpenUrlProcessor
 from events_hitparade_co.command_processor.quit import HitParadeBotQuitCommandProcessor
 from events_hitparade_co.command_processor.scrape import HitParadeBotScrapeProcessor
+from events_hitparade_co.output.cache import HitParadeCachePublisherOuput
+from events_hitparade_co.output.default import HitParadeDefaultOuput
+from events_hitparade_co.messaging.messaging import MessagingQueue
+from events_hitparade_co.components.scraper import Scraper
+from events_hitparade_co.components.action import ScraperAction
+from events_hitparade_co.components.login import ScraperLogin
+from events_hitparade_co.parsers.selenium import SeleniumParser
+from events_hitparade_co.url_generators.generator import UrlGenerator 
 
 class HitParadeFactories:
     factory_command_mapping = {'TODAY': 'TodaySegmentProcessor'}
