@@ -78,6 +78,7 @@ class HitParadeScrapingBootstrapper:
                             bot_data = self.get_state_storage_stubs(dict_to_update=bot_data, cache_manager=self.cache_manager, **kwargs)
                             url_event_data = event_data.get(bot_data.get('url_event_id', ''), None)
                             model_event_data = event_data.get(bot_data.get('model_event_id', ''), None)
+                            bot_data['url_generators'] = self.global_variables['url_generators']
                             if not bot_data['bot.type'] == 'consumer':
                                 bot_data['data_selector'] = url_event_data['data_selector_id']
                                 bot_data['data_selector_id'] = url_event_data['data_selector_id']
@@ -190,3 +191,4 @@ class HitParadeScrapingBootstrapper:
     @staticmethod
     def get_bots(**kwargs):
         return HitParadeScrapingBootstrapper.boot_up(**kwargs).get_bot_data()
+
