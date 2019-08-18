@@ -1,9 +1,5 @@
-from events_hitparade_co.messaging.messaging import MessagingQueue
-from threading import Thread
-import time
 import psycopg2
 import psycopg2.extras
-from collections import OrderedDict
 import traceback
 class HitParadeTransactionManager:
 
