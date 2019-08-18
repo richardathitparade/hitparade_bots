@@ -79,7 +79,7 @@ class HitParadeScrapingBootstrapper:
                             url_event_data = event_data.get(bot_data.get('url_event_id', ''), None)
                             model_event_data = event_data.get(bot_data.get('model_event_id', ''), None)
                             bot_data['url_generators'] = self.global_variables['url_generators']
-                            if not bot_data['bot.type'] == 'consumer':
+                            if not bot_data['bot.type'] == 'consumer' and  not bot_data['bot.type'] == 'transaction':
                                 bot_data['data_selector'] = url_event_data['data_selector_id']
                                 bot_data['data_selector_id'] = url_event_data['data_selector_id']
                                 bot_data['subscribable_event'] = {
