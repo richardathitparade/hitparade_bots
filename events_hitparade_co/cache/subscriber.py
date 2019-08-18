@@ -1,4 +1,3 @@
-import json
 class CacheSubscriber:
 
     def __init__(self, **kwargs):
@@ -16,5 +15,4 @@ class CacheSubscriber:
             config_object = self.event_config
         if self.root_config is None:
             config_object = self.event_config
-        #print('retrieve next message event[%s] pid[%s] config[%s]' % ( str(self.event), str(self.pid), json.dumps(self.root_config)) )
         return self.cache_manager.get_message(host=config_object['host'], port=config_object['port'], cache_type=config_object['cache_type'])
