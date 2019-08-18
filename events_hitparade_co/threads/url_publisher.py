@@ -111,25 +111,7 @@ class UrlPublisher(Thread):
             url_check = url_value.split('?')[0] if '?' in url_value else url_value
             hash_value = self.get_state_static_prop(prop=url_check, default_value=None, dict_sub=None)
         return url_value, data_selector, publish_to_event, id_property, parent_id_property, id_value, parent_id_value
-
-    # def __get_next_url(self, process_id=None):
-    #     url_value = None
-    #     data_selector = None
-    #     publish_to_event = None
-    #     id_property = None
-    #     parent_id_property = None
-    #     id_value = None
-    #     parent_id_value = None
-    #     if len(self.received_urls) > 0:
-    #         url_value, data_selector, publish_to_event, id_property, parent_id_property, id_value, parent_id_value = self.get_next_url()
-    #     else:
-    #         generate_url_args = dict()
-    #         generate_url_args['publish_event'] = self.publish_to_event
-    #         generate_url_args['publish_to_event'] = self.publish_to_event
-    #         generate_url_args['id'] = process_id if process_id else MessagingQueue.unique_id(global_id=True, cache_manager=self.cache_manager)
-    #         url_value, data_selector, publish_to_event, id_property, parent_id_property, id_value, parent_id_value = self.generate_next_url( **generate_url_args )
-    #     return url_value, data_selector, publish_to_event, id_property, parent_id_property, id_value, parent_id_value
-
+ 
     def add_url(self, url=None,data_selector=None, publish_to=None, publish_event=None, id_property=None, parent_id_property=None, id_value=None, parent_id_value=None, status=None):
             data_obj  = dict()
             if isinstance(data_selector, dict):
