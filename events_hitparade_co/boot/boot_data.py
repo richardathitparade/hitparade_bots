@@ -22,6 +22,7 @@ class BootData:
 
     @staticmethod
     def get_bots(override=False):
+        environment_variables = None
         try:
             environment_variables = BootData.get_env_variables()
         except:
