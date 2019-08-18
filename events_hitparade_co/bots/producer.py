@@ -26,6 +26,7 @@ class HitParadeProducerBot(HitParadeBot):
         self.messaging_thread = Messaging(**kwargs)
         self.messaging_thread.setDaemon(True)
         self.messaging_thread.start()
+        self.sc = 0
         self.state_storage_store_prop(prop='current_state', val={
             'listen_for_urls' : self.listen_for_urls,
             'scraping_page'   : False,
@@ -40,12 +41,11 @@ class HitParadeProducerBot(HitParadeBot):
         republish_css_dict = dict()
         republishers = republish_css.get('republishers', [])
         for republisher_id in republishers:
-            self.republish( json_data=json_data, prop_id=republisher_id, republisher_css=republish_css.get(republisher_id, []), id_property=id_property, parent_id_property=parent_id_property, parent_id=parent_id, parent_url=parent_url )
+            self.republish( json_data=json_data, prop_id='buckets', republisher_css=republish_css.get(republisher_id, []), id_property=id_property, parent_id_property=parent_id_property, parent_id=parent_id, parent_url=parent_url )
         return self.__get_all_republish_urls(parent_id=parent_id)
              
 
     def republish(self,json_data=None, prop_id='general', republisher_css=None, id_property='id', parent_id_property='parent_id', parent_id=None, parent_url=None):
-        list_of_urls = []
         if json_data is None:
             if republisher_css is None or len(republisher_css) == 0: 
                 print('***** republisher_css is none and json_data is none')
@@ -57,8 +57,7 @@ class HitParadeProducerBot(HitParadeBot):
             css_listing_type = css_listing.get('type', None)
             if css_listing_value and css_listing_type:
                 if css_listing_type == 'list':
-                    if isinstance(json_data, list):   
-                        new_url_listing = []
+                    if isinstance(json_data, list):
                         for el in json_data:
                             new_el = None
                             if el and isinstance(el, dict):
@@ -66,13 +65,13 @@ class HitParadeProducerBot(HitParadeBot):
                             else:
                                 new_el = el
                             if new_el and len(republisher_css)>1:
-                                self.republish( json_data=new_el, republisher_css=republisher_css[1:], id_property=id_property, parent_id_property=parent_id_property, parent_id=parent_id, parent_url=parent_url ) 
+                                self.republish( json_data=new_el,  prop_id='buckets',republisher_css=republisher_css[1:], id_property=id_property, parent_id_property=parent_id_property, parent_id=parent_id, parent_url=parent_url )
                             else:
                                 print('***** new_el is none or len republisher_css <= 1 keys[%s], %s' % ( str(  el.keys() ) , str( len( republisher_css) ) ) )
                     elif isinstance(json_data, dict):
                         json_data_value = json_data.get( css_listing_value, None )
                         if json_data_value and len(republisher_css)>1:
-                            self.republish( json_data=json_data_value, republisher_css=republisher_css[1:], id_property=id_property, parent_id_property=parent_id_property, parent_id=parent_id, parent_url=parent_url ) 
+                            self.republish( json_data=json_data_value,  prop_id='buckets',republisher_css=republisher_css[1:], id_property=id_property, parent_id_property=parent_id_property, parent_id=parent_id, parent_url=parent_url )
                         else:
                             print('***** json_data_value is none or len republisher_css is <=1 keys[%s], %s ' % ( str(json_data.keys()), str( len(republisher_css) ) ) )
                     else:
@@ -105,8 +104,12 @@ class HitParadeProducerBot(HitParadeBot):
                             if el_value:
                                 dict_value['id'] = self.unique_id( global_id=True, cache_manager=self.cache_manager )
                                 dict_value['url'] = css_listing.get('base_url', None) + el.get( css_listing_value, None )
+                                dict_value['database_serializer']   = self.__dict__[dict_value['data_selector_id']].get('database_serializer', None)
+                                dict_value['reformatter']           = self.__dict__[dict_value['data_selector_id']].get('reformatter', None)
+                                dict_value['collection']            = self.__dict__[dict_value['data_selector_id']].get('collection', None)
+                                dict_value['database']              = self.__dict__[dict_value['data_selector_id']].get('database', None)
                                 dict_value['add_range'] = 1
-                                self.add_statics_listitem(prop_id=prop_id, val=dict_value)
+                                self.add_statics_listitem(prop_id=prop_id, val=dict_value, separate=True)
                             else:
                                 print('***** el_value is none not adding')
                                 print('***** el keys are  %s' % str(el.keys()))
@@ -115,8 +118,12 @@ class HitParadeProducerBot(HitParadeBot):
                         if d_value:
                             dict_value['id'] = self.unique_id( global_id=True, cache_manager=self.cache_manager )
                             dict_value['url'] = css_listing['base_url'] + dict_value
+                            dict_value['database_serializer']   = self.__dict__[dict_value['data_selector_id']].get('database_serializer', None)
+                            dict_value['reformatter']           = self.__dict__[dict_value['data_selector_id']].get('reformatter', None)
+                            dict_value['collection']            = self.__dict__[dict_value['data_selector_id']].get('collection', None)
+                            dict_value['database']              = self.__dict__[dict_value['data_selector_id']].get('database', None)
                             dict_value['add_range'] = 2
-                            self.add_statics_listitem(prop_id=prop_id, val=dict_value)
+                            self.add_statics_listitem(prop_id=prop_id, val=dict_value, separate=True)
                         else:
                             print('***** not adding dict_value it is none and d_value keys are %s'% str(json_data.keys()))
                     elif isinstance( json_data, str ):
@@ -209,7 +216,6 @@ class HitParadeProducerBot(HitParadeBot):
             self.store_state_static_prop(prop=str(self.ip) +'.id', val=str(v[ v['id_property'] ]) , dict_sub=None)
 
 
-
     def __get_all_republish_urls(self, parent_id=None):
         return [obj for obj in self.get_statics_listitems() if obj.get('parent_id', None) == parent_id]
 
@@ -254,6 +260,7 @@ class HitParadeProducerBot(HitParadeBot):
         self.state_storage_store_prop(prop='output_dict', val=dict())
         self.send_complete()
         self.state_storage_increment_val(prop='run_count', val=1)
+        self.sc = 0
         self.__del_rscs(scrape_command=scrape_command, scraped_result=scraped_result, run_kwargs=run_kwargs, url_value=url_value, url_verified=url_verified, url_verified_status=url_verified_status, json_data=json_data)
         print('<< [%s] releasing producer lock >> ' % (str(self.id)))
 
@@ -271,6 +278,7 @@ class HitParadeProducerBot(HitParadeBot):
     def __sleep(self):
         print( 'sleeping %s seconds' % str(self.sleep_time) )    
         time.sleep( self.sleep_time )
+        self.sc += self.sleep_time
 
     def __thread_setup(self):
         self.state_storage_store_prop(prop='run_count', val=2)
@@ -293,10 +301,12 @@ class HitParadeProducerBot(HitParadeBot):
                         if self.state_storage_get_prop('current_state').get('listen_for_urls', False):
                             print('producer is listening for urls....')
                             if not self.state_storage_get_prop('current_state').get('scraping_page', False):
+                                self.state_storage_store_prop(prop='current_state', dict_sub='listen_for_urls', val=True)
                                 print('not currently scraping any pages. Current url %s ' % str(self.state_storage_get_prop('current_state').get('current_url', None)))
                                 print( '<<<<<<<<waiting for new message...%s >>>>>>>>' % self.id  )
                                 self.state_storage_store_prop(prop='command_message', val=self.next_msg())
                                 if not self.state_storage_get_prop('command_message').get('command', None) == 'SHUTDOWN':
+                                    self.state_storage_store_prop(prop='current_state', dict_sub='scraping_page', val=True)
                                     json_data_value = self.state_storage_get_prop('command_message').get('message', None)['data']
                                     url_value, url_verified, url_verified_status = self.get_urlz(json_data=json_data_value)
                                     self.store_state_vals(message_list=json_data_value , url_value=url_value, scraping=True, data_selector=json_data_value.get( 'data_selector', None ), publish_to=json_data_value.get( 'publish_to', None ))
@@ -314,6 +324,8 @@ class HitParadeProducerBot(HitParadeBot):
                                         print('<< [%s] releasing producer lock >> ' % (str(self.id)))
                             print('sleep....%s' % str(self.sleep_time)) 
                             self.__sleep()
+                            if self.sc > 25:
+                                self.reset_resources()
                     except:
                         traceback.print_exc()
                         self.state_storage_increment_val(prop='exception_count', val=1)
@@ -321,4 +333,3 @@ class HitParadeProducerBot(HitParadeBot):
 
     def run_recurring(self):
         return True
-
