@@ -393,65 +393,73 @@ class CacheManager:
         return CacheManager.instance.get_broker()
 
     @staticmethod
-    def statics():
-        json_val = CacheManager.broker().get('statics')
+    def statics(separate_prop=None):
+        json_val = CacheManager.broker().get('statics') if separate_prop is None else CacheManager.broker().get(separate_prop)
         return  json.loads(json_val) if json_val else dict()
 
     @staticmethod
     def get_next_statics_listitem():
         return_value = None
-        static_buckets = CacheManager.get_state_static_prop(prop='buckets')
+        static_buckets = CacheManager.get_state_static_prop(prop='buckets', separate=True)
         if static_buckets is None:
-            static_buckets = {}
-        for subkey in static_buckets.keys():
-            if return_value is None:
-                bucket_list = static_buckets.get(subkey, [])
-                if len(bucket_list)>0:
-                    return_value = bucket_list.pop()
-                    CacheManager.store_state_static_prop(prop='buckets', val=bucket_list, dict_sub=subkey)
-                    return return_value
+            static_buckets =  []
+        if isinstance(static_buckets, list):
+            if len(static_buckets) > 0:
+                return_value = static_buckets[-1]
+                bucket_list = static_buckets[0:-1]
+                CacheManager.store_state_static_prop(prop='buckets', val=bucket_list, separate=True)
+                return return_value
+        else:
+            for subkey in static_buckets.keys():
+                if return_value is None:
+                    bucket_list = static_buckets.get(subkey, [])
+                    if len(bucket_list)>0:
+                        return_value = bucket_list[-1]
+                        bucket_list = bucket_list[0:-1]
+                        CacheManager.store_state_static_prop(prop='buckets', val=bucket_list, separate=True)
+                        return return_value
         return return_value
 
     @staticmethod
     def get_statics_listitems():
         full_list = []
-        static_buckets = CacheManager.get_state_static_prop(prop='buckets')
+        static_buckets = CacheManager.get_state_static_prop(prop='buckets', separate=True)
         if static_buckets:
             for subkey in static_buckets.keys():
                 full_list += static_buckets.get(subkey, [])
         else:
-            static_buckets = {}
-            CacheManager.store_state_static_prop(prop='buckets', val=static_buckets)
+            static_buckets = []
+            CacheManager.store_state_static_prop(prop='buckets', val=static_buckets, separate=True)
         return full_list
 
     @staticmethod
-    def add_statics_listitem(prop_id='general', val=None):
+    def add_statics_listitem(prop_id='general', val=None, separate=False):
         if val: 
-            static_buckets = CacheManager.get_state_static_prop(prop='buckets',dict_sub=prop_id)
+            static_buckets = CacheManager.get_state_static_prop(prop=prop_id, separate=separate)
             if static_buckets is None:
                 static_buckets = []   
             if isinstance(val, list):
                 static_buckets += val
             else:
                 static_buckets.append(val)
-            CacheManager.store_state_static_prop(prop='buckets', val=static_buckets , dict_sub=prop_id)
+            CacheManager.store_state_static_prop(prop=prop_id, val=static_buckets, separate=separate)
             return True
         return False
 
     @staticmethod
-    def get_statics_listitem(prop_id='general', default_val=None):
+    def get_statics_listitem(prop_id='general', default_val=None, separate=False):
         return_value = default_val
-        static_buckets = CacheManager.get_state_static_prop(prop='buckets',dict_sub=prop_id)
+        static_buckets = CacheManager.get_state_static_prop(prop=prop_id, separate=separate)
         if static_buckets is None:
            static_buckets = []   
         if len(static_buckets) > 0:
             return_value = static_buckets.pop()      
-            CacheManager.store_state_static_prop(prop='buckets', val=static_buckets , dict_sub=prop_id)
+            CacheManager.store_state_static_prop(prop=prop_id, val=static_buckets, separate=separate)
         return return_value
 
     @staticmethod
-    def get_state_static_prop(prop='events', default_value=None, dict_sub=None):
-        json_val = CacheManager.statics()
+    def get_state_static_prop(prop='events', default_value=None, dict_sub=None, separate=False):
+        json_val = CacheManager.statics(separate_prop=prop) if separate else CacheManager.statics()
         if json_val:
             if isinstance(json_val.get(prop, default_value), dict) and dict_sub:
                 return json_val.get(prop,default_value).get(dict_sub, default_value)
@@ -537,12 +545,12 @@ class CacheManager:
             return None
 
     @staticmethod
-    def store_state_static_prop(prop='events', val=None, dict_sub=None):
+    def store_state_static_prop(prop='events', val=None, dict_sub=None, separate=False):
         def mcon(o):
             if isinstance(o, datetime):
                 return o.__str__()
         try:
-            ip_properties_dict = CacheManager.statics()
+            ip_properties_dict = CacheManager.statics(separate_prop=prop) if separate else CacheManager.statics()
             if ip_properties_dict is None:
                 ip_properties_dict = dict()
             if dict_sub is None:
@@ -564,7 +572,7 @@ class CacheManager:
                     ip_properties_dict[prop] = val
             else:
                 return False
-            CacheManager.broker().set( 'statics' , json.dumps(ip_properties_dict, default=mcon) )
+            CacheManager.broker().set( prop if separate else 'statics' , json.dumps(ip_properties_dict, default=mcon) )
             return True
         except:
             traceback.print_exc()
@@ -624,9 +632,4 @@ class CacheManager:
             kwargs['cache_manager'] = CacheManager.instance
             CacheManager.instance.init_caches(**kwargs)
         return CacheManager.instance
-
-
-
-
-
 
