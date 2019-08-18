@@ -49,6 +49,8 @@ class WebScraper(Thread):
         self.default_parser = kwargs.get('default_parser', None)
         self._stop_event = threading.Event()
         self.scraping_lock = threading.Lock()
+        self.get_external_ip_adresss = kwargs.get('get_external_ip_adresss', None)
+        self.ip = kwargs.get('ip', None)
         self.get_state_static_prop = kwargs.get('get_state_static_prop', None)
         self.store_state_static_prop = kwargs.get('store_state_static_prop', None)
 
@@ -150,10 +152,16 @@ class WebScraper(Thread):
             print('<<acquire producer scraper lock>>')
             self.scraping_lock.acquire()
             obj['driver'] = self.driver
+            obj['get_state_static_prop'] = self.get_state_static_prop
+            obj['store_state_static_prop'] = self.store_state_static_prop
+            obj['id'] = self.id
             obj['web_driver'] = self
             type_id_value = obj.get('type_id', None)
             del obj['type_id']
             obj['cache_manager'] = self.cache_manager
+            obj['ip'] = self.ip
+            obj['get_external_ip_addresss'] = self.get_external_ip_adresss
+            print('ip is %s ' % self.ip)
             obj['open_url']=False
             obj['default_parser'] = self.default_parser
             obj['nocommand'] = True
