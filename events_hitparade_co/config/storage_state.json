@@ -37,6 +37,8 @@
       "republisher" : true,
       "bot_data_dictionary"  : [],
       "republisher_data" : [],
-      "bucket_name"  :  "hitparade.tennis",
+      "bucket_name"  :  "hitparade.tennis", 
+      "sport_name"   : "tennis",
+      "transaction_tables" : ["tennis_match_details"],
       "is_secure": false
 }
