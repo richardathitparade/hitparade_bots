@@ -425,8 +425,11 @@ class CacheManager:
         full_list = []
         static_buckets = CacheManager.get_state_static_prop(prop='buckets', separate=True)
         if static_buckets:
-            for subkey in static_buckets.keys():
-                full_list += static_buckets.get(subkey, [])
+            if isinstance( static_buckets, dict ):
+                for subkey in static_buckets.keys():
+                    full_list += static_buckets.get(subkey, [])
+            elif isinstance( static_buckets, list ):
+                full_list += static_buckets
         else:
             static_buckets = []
             CacheManager.store_state_static_prop(prop='buckets', val=static_buckets, separate=True)
