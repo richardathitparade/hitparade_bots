@@ -5,7 +5,7 @@
     "model_event_id" : "tennis_json_main.models",
     "postrun_actions" : [],
     "prerun_actions" : [],
-    "active" : true,
+    "active" : false,
     "headless" : false
   },
   "bot.2": {
@@ -18,9 +18,13 @@
 },
   "bot.3": {
     "bot.type": "consumer",
-    "active": true,
+    "active": false,
     "model_event_id" : "tennis_json_details.models",
     "serializer" : "AggregatedSerializer"
+  },
+  "bot.5": {
+    "bot.type": "transaction",
+    "active": false
   },
   "data_selectors" : [
     {
