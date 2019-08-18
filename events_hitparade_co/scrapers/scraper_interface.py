@@ -49,6 +49,8 @@ class WebScraper(Thread):
         self.default_parser = kwargs.get('default_parser', None)
         self._stop_event = threading.Event()
         self.scraping_lock = threading.Lock()
+        self.get_state_static_prop = kwargs.get('get_state_static_prop', None)
+        self.store_state_static_prop = kwargs.get('store_state_static_prop', None)
 
 
 
