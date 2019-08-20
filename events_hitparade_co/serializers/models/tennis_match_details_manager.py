@@ -13,6 +13,8 @@ class HitParadeMatchDetailsSofaDbSerializer(HitParadeSerializer):
         self.dbusername = kwargs.get('dbusername', kwargs.get('-dbusername', None))
         self.dbpassword = kwargs.get('dbpassword', kwargs.get('-dbpassword', None))
         self.db = kwargs.get('db', kwargs.get('-db', None))
+        self.store_state_static_prop = kwargs.get('store_state_static_prop', None)
+
 
     GAME_POINT_VALUES = ['0', '15','30','40', 'A', 'X']
 
@@ -232,8 +234,16 @@ class HitParadeMatchDetailsSofaDbSerializer(HitParadeSerializer):
                         home_player_rank_2          = match['away_players'][1]['rank']
                         home_player_rank_text_2     = match['away_players'][1]['rank_text']
                         home_player_sofa_id_2       = match['away_players'][1]['sofa_id']
-                    away_score_value = None if match.get('score_result', {}).get('away_score', None) is None else int(match.get('score_result', {}).get('away_score', None))
-                    home_score_value = None if match.get('score_result', {}).get('home_score', None) is None else int(match.get('score_result', {}).get('home_score', None))
+                    away_score_value = 0
+                    home_score_value = 0
+                    try:
+                        away_score_value = None if match.get('score_result', {}).get('away_score', None) is None else int(match.get('score_result', {}).get('away_score', None))
+                    except:
+                        pass
+                    try:
+                        home_score_value = None if match.get('score_result', {}).get('home_score', None) is None else int(match.get('score_result', {}).get('home_score', None))
+                    except:
+                        pass
                     started = 'T' if match.get('score_result', {}).get('started', None) else 'F'
                     finished = 'T' if match.get('score_result', {}).get('finished', None) else 'F'
                     winner = 'home' if match.get('score_result', {}).get('home_winner', None) and not  match.get('score_result', {}).get('away_winner', None) else 'away' if not match.get('score_result', {}).get('home_winner', None) and match.get('score_result', {}).get('away_winner', None) else None
@@ -489,11 +499,22 @@ class HitParadeMatchDetailsSofaDbSerializer(HitParadeSerializer):
                                 g['end_away_score_value'] = int(g.get('away_score'))
                                 if g['winner'] == 'away':
                                     g['away_score_value'] -= 1
-
-                            g['score_differential'] = g['away_score_value'] - g['home_score_value']
+                            g['score_differential'] = -1000
+                            g['home_to_6'] = -1000
+                            g['away_to_6'] = -1000
+                            try:
+                                g['score_differential'] = g['away_score_value'] - g['home_score_value']
+                            except:
+                                pass
                             g['is_deleted'] = 'F'
-                            g['home_to_6'] = 6 - g['home_score_value']
-                            g['away_to_6'] = 6 - g['away_score_value']
+                            try:
+                                g['home_to_6'] = 6 - g['home_score_value']
+                            except:
+                                pass
+                            try:
+                                g['away_to_6'] = 6 - g['away_score_value']
+                            except:
+                                pass
                             for k in stat_keys:
                                 game_parameters.update(g.get(k, {}))
                                 game_parameters['away_' + k + '_stat'] = g.get(k, {}).get('away_stat', None)
@@ -506,17 +527,17 @@ class HitParadeMatchDetailsSofaDbSerializer(HitParadeSerializer):
                                         game_parameters[_key] = g.get(_key, None)
                             previous_point = None
                             for idx, p in enumerate(g.get('points', [])):
-                                p['home_to_6'] = g['home_to_6']
-                                p['away_to_6'] = g['away_to_6']
+                                p['home_to_6'] =  g.get('home_to_6', -1000)
+                                p['away_to_6'] =  g.get('away_to_6', -1000)
                                 p['match_hpid'] = row['hpid']
                                 p['set_hpid']   = row_set['hpid']
-                                p['end_away_score_value'] = g['end_away_score_value']
-                                p['end_home_score_value'] = g['end_home_score_value']
-                                p['start_away_score_value'] = g['away_score_value']
-                                p['start_home_score_value'] = g['home_score_value']
+                                p['end_away_score_value'] = g.get('end_away_score_value', -1000)
+                                p['end_home_score_value'] = g.get('end_home_score_value', -1000)
+                                p['start_away_score_value'] = g.get('away_score_value', -1000)
+                                p['start_home_score_value'] = g.get('home_score_value', -1000)
                                 p['is_deleted'] = 'F'
                                 p['broken'] = 'F' if p['serving'] == p['winner'] else 'T'
-                                p['score_differential'] = g['score_differential']
+                                p['score_differential'] = g.get('score_differential', -1000)
                                 obj_val = self.__get_prev_point(point=p, idx=idx, previous_point=previous_point)
                                 p['start_home_score'] = obj_val['home']
                                 p['start_away_score'] = obj_val['away']
@@ -585,21 +606,23 @@ class HitParadeMatchDetailsSofaDbSerializer(HitParadeSerializer):
         if connection:
             try:
                 for p in data['home_players']:
-                    sofa_id, hpid = self.user_exists(sofa_id=p['sofa_id'])
-                    if hpid:
-                        p['hpid'] = hpid
-                    else:
-                        sofa_id, hpid = self.insert_player(player=p)
-                        if sofa_id and hpid and sofa_id == p['sofa_id']:
+                    if not p.get('sofa_id', None) is None:
+                        sofa_id, hpid = self.user_exists(sofa_id=p['sofa_id'])
+                        if hpid:
                             p['hpid'] = hpid
+                        else:
+                            sofa_id, hpid = self.insert_player(player=p)
+                            if sofa_id and hpid and sofa_id == p['sofa_id']:
+                                p['hpid'] = hpid
                 for p in data['away_players']:
-                    sofa_id, hpid = self.user_exists(sofa_id=p['sofa_id'])
-                    if hpid:
-                        p['hpid'] = hpid
-                    else:
-                        sofa_id, hpid = self.insert_player(player=p)
-                        if sofa_id and hpid and sofa_id == p['sofa_id']:
+                    if not p.get('sofa_id', None) is None:
+                        sofa_id, hpid = self.user_exists(sofa_id=p['sofa_id'])
+                        if hpid:
                             p['hpid'] = hpid
+                        else:
+                            sofa_id, hpid = self.insert_player(player=p)
+                            if sofa_id and hpid and sofa_id == p['sofa_id']:
+                                p['hpid'] = hpid
                 scraper_url, hpid, hash, hash_wurl, sequence_number, removed = self.match_exists(hash=data['hash'], hash_wurl=data['hash_wurl'], scraper_url=data['scraper_url'], remove_older=True)
                 if removed is None or removed:
                     data['sequence_number'] = 1
