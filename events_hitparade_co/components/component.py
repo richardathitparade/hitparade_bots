@@ -47,6 +47,12 @@ class ScraperComponent:
         self.force_refresh = kwargs.get('force_refresh', False)
         self.get_external_ip_addressesss = kwargs.get('get_external_ip_adressesss', None)
 
+    def reset(self, **kwargs):
+        self.scraper_url = self.state_storage_get_prop('scraper_url')  # kwargs.get('scraper_url', None)
+        self.scraper_url = self.reformat_scraper_url()
+        self.command = kwargs.get('command', None)
+        self.open_url = self.state_storage_get_prop('data_selectors').get('open_url', True)  # kwargs.get('data_selectors', {}).get('open_url', True)
+        self.use_once = kwargs.get('use_once', False)
 
     def reformat_scraper_url(self):
         if '?' in self.scraper_url:
@@ -136,25 +142,32 @@ class ScraperComponent:
         try:
             print('open( open_url=%s, force_refresh=%s, scraper_url=%s)'%( str(self.open_url), str(self.force_refresh), str(self.get_scraper_url())))
             if ((not self.open_url) or self.force_refresh) and not self.driver is None and not self.get_scraper_url() is None:
-                print( 'refresh %s ' % self.get_scraper_url() )
-                self.driver = self.web_driver.driver 
-                print('---------------------------------- open value is scraper url %s --------------------------- ' % self.get_scraper_url())
-                self.driver.get(self.get_scraper_url())
-                self.driver.refresh()
-                self.driver.implicitly_wait(15)
-                self.parser_kwargs['driver'] = self.driver
-                self.parser_kwargs['web_driver'] = self.web_driver
-                try:
-                    self.default_parser =  self.parser_kwargs.get('default_parser', None)
-                    if self.default_parser is None:
-                        self.default_parser = self.cache_manager.cache_output_component_func( self.parser_kwargs.get('default_parser', 'BeautifulSoupParser'), **self.parser_kwargs)
-                    self.default_parser.driver = self.web_driver.driver
-                    self.default_parser.reload_content()
-                except:
-                    print('exception making parser')
-                    traceback.print_exc()
-                self.open_url = True
-                return True
+                current_url = self.web_driver.driver.current_url
+                scraper_url = self.get_scraper_url()
+                self.driver = self.web_driver.driver
+                if '?' in scraper_url:
+                    scraper_url = scraper_url.split('?')[0]
+                if not scraper_url in current_url:
+                    print( 'refresh %s ' % scraper_url )
+                    print('---------------------------------- open value is scraper url %s --------------------------- ' % scraper_url)
+                    self.driver.get(scraper_url)
+                    #self.driver.refresh()
+                    self.driver.implicitly_wait(15)
+                    self.parser_kwargs['driver'] = self.driver
+                    self.parser_kwargs['web_driver'] = self.web_driver
+                    try:
+                        self.default_parser =  self.parser_kwargs.get('default_parser', None)
+                        if self.default_parser is None:
+                            self.default_parser = self.cache_manager.cache_output_component_func( self.parser_kwargs.get('default_parser', 'BeautifulSoupParser'), **self.parser_kwargs)
+                        self.default_parser.driver = self.web_driver.driver
+                        self.default_parser.reload_content()
+                    except:
+                        print('exception making parser')
+                        traceback.print_exc()
+                    self.open_url = True
+                    return True
+                else:
+                    return False
         except:
             traceback.print_exc()
         return False
