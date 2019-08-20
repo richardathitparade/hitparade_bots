@@ -361,8 +361,14 @@ class HitParadeMatchDetailsSofaReformatter(HitParadeReformatter):
                 set_values['set_title'] = set_title
                 set_values['games'] = [] if set_values.get('games', None) is None else set_values['games']
                 game_value = self.__parse_game_content(div_content=div_content, set_number=set_number)
-                game_value['away_score'] =  div_content.get('div.pbp > div.pbp__setcell > div.pbp__setcell-content', [])[0].get('text', None)
-                game_value['home_score'] =  div_content.get('div.pbp > div.pbp__setcell > div.pbp__setcell-content', [])[1].get('text', None)
+                try:
+                    game_value['away_score'] =  div_content.get('div.pbp > div.pbp__setcell > div.pbp__setcell-content', [])[0].get('text', None)
+                except:
+                    pass
+                try:
+                    game_value['home_score'] =  div_content.get('div.pbp > div.pbp__setcell > div.pbp__setcell-content', [])[1].get('text', None)
+                except:
+                    pass
                 set_values['games'].append(game_value)
 
 
@@ -382,7 +388,11 @@ class HitParadeMatchDetailsSofaReformatter(HitParadeReformatter):
         last_game_winner = None
         last_point_winner = None
         for i in range(len(all_sets)):
-            s = list(filter(lambda x: x['set_number'] == (i+1), all_sets))[0]
+            s = dict()
+            try:
+                s = list(filter(lambda x: x['set_number'] == (i+1), all_sets))[0]
+            except:
+                pass
             s['games'] = s['games'][::-1]
             s['winner'] = s['games'][-1]['points'][-1]['winner']
             if i > 0:
