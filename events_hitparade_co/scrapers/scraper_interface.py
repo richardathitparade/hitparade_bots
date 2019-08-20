@@ -1,5 +1,4 @@
-from events_hitparade_co.messaging.messaging import MessagingQueue
-# from events_hitparade_co.hitparade_factories import HitParadeFactories
+from events_hitparade_co.messaging.messaging import MessagingQueue 
 import json
 from abc import abstractmethod
 import threading
@@ -168,7 +167,11 @@ class WebScraper(Thread):
             for k in self.__dict__.keys():
                 if 'storage_' in k:
                     obj[k] = self.__dict__[k]
-            scraper_component = self.cache_manager.cache_output_component_func(type_id=type_id_value, **obj)
+            if scraper_component is None:
+                scraper_component = self.cache_manager.cache_output_component_func(type_id=type_id_value, **obj)
+            else:
+                scraper_component.reset(**obj)
+
             print('[%s] :: command in %s with message %s '  %  (str(self.get_id()), command, str(obj)))
             if not self.stopped() or command == 'QUIT':
                 print('[%s] Thread command either thread has been stopped or command is QUIT {%s} ' % ( str(self.get_id()), command ) )
