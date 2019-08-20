@@ -200,7 +200,7 @@ class HitParadeProducerBot(HitParadeBot):
         v = kwargs.get('scraped_result', None)
         if not v.get('current_url', None) is None and ('http://' in  v.get('current_url', None) or 'https://' in v.get('current_url', None)):
             json_data = kwargs.get('json_data', None)
-            self.state_storage_store_prop(prop='output_dict', dict_sub='publish_to', val=json_data.get('publish_event', None))
+            self.state_storage_store_prop(prop='output_dict', dict_sub='publish_to', val=json_data.get('publish_to_event', None))
             self.state_storage_store_prop(prop='output_dict', dict_sub='recursive', val=json_data.get('recursive', False))
             v[json_data.get('id_property', 'id')] = self.unique_id(global_id=True, cache_manager=self.cache_manager)
             v['id_property'] = json_data.get('id_property', 'id')
