@@ -16,7 +16,7 @@ class HitParadeProducerBot(HitParadeBot):
         self.cache_manager = kwargs.get('cache_manager', None)
         self.output_connector = self.cache_output_component_func(type_id=kwargs.get( 'output', 'HitParadeCachePublisherOuput' ), **kwargs)
         self.hit_parade_command_processor = self.cache_output_component_func(**self.get_command_to(**kwargs))
-        self.sleep_time = 5
+        self.sleep_time = 20
         self.bot_type = kwargs.get( 'bot.type', 'producer' )
         self.state_storage_store_prop(prop='start_url', val=kwargs.get('scraper_url', None))
         self.pp = pp.PrettyPrinter(indent=4)
