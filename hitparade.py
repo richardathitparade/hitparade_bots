@@ -36,3 +36,5 @@ def create_app():
     start_bots() 
     return app
 
+
+app = create_app()
