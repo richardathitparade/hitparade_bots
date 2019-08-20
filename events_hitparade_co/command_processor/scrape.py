@@ -16,7 +16,7 @@ class HitParadeBotScrapeProcessor(HitParadeBotCommandProcessor):
         run_cmd called by HitParadeBot
         :param kwargs: dict with data to process
         """
-        return self.scrape_data(id=self.scraper.get_id(), scraping_props=self.bot_data, caller=self.caller)
+        return self.scrape_data(id=self.scraper.get_id(), scraping_props=self.bot_data, caller=self.caller, **kwargs)
 
     class Factory:
         """
