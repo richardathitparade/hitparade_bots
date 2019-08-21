@@ -18,13 +18,9 @@
 },
   "bot.3": {
     "bot.type": "consumer",
-    "active": false,
+    "active": true,
     "model_event_id" : "tennis_json_details.models",
     "serializer" : "AggregatedSerializer"
-  },
-  "bot.5": {
-    "bot.type": "transaction",
-    "active": false
   },
   "data_selectors" : [
     {
