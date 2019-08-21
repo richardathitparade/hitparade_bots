@@ -8,7 +8,7 @@ from events_hitparade_co.command_processor.scrape import HitParadeBotScrapeProce
 from events_hitparade_co.output.cache import HitParadeCachePublisherOuput
 from events_hitparade_co.output.default import HitParadeDefaultOuput
 from events_hitparade_co.messaging.messaging import MessagingQueue
-from events_hitparade_co.components.scraper import Scraper
+from events_hitparade_co.components.scrapers.scraper_interface import Scraper
 from events_hitparade_co.components.action import ScraperAction
 from events_hitparade_co.components.login import ScraperLogin
 from events_hitparade_co.parsers.selenium import SeleniumParser
