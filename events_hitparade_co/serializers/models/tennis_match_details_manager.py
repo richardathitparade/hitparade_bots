@@ -207,33 +207,42 @@ class HitParadeMatchDetailsSofaDbSerializer(HitParadeSerializer):
             if connection:
                 try:
                     print(match)
-                    away_player_hpid_1              = match['away_players'][0]['hpid']
-                    away_player_rank_1              = match['away_players'][0]['rank']
-                    away_player_rank_text_1         = match['away_players'][0]['rank_text']
-                    away_player_sofa_id_1           = match['away_players'][0]['sofa_id']
+                    away_player_hpid_1              = None
+                    away_player_rank_1              = None
+                    away_player_rank_text_1         = None
+                    away_player_sofa_id_1           = None
                     away_player_hpid_2              = None
                     away_player_rank_2              = None
                     away_player_rank_text_2         = None
                     away_player_sofa_id_2           = None
-                    if len(match['away_players']) > 1:
-                        away_player_hpid_2          = match['away_players'][1]['hpid']
-                        away_player_rank_2          = match['away_players'][1]['rank']
-                        away_player_rank_text_2     = match['away_players'][1]['rank_text']
-                        away_player_sofa_id_2       = match['away_players'][1]['sofa_id']
-
-                    home_player_hpid_1              = match['home_players'][0]['hpid']
-                    home_player_rank_1              = match['home_players'][0]['rank']
-                    home_player_rank_text_1         = match['home_players'][0]['rank_text']
-                    home_player_sofa_id_1           = match['home_players'][0]['sofa_id']
+                    home_player_hpid_1              = None
+                    home_player_rank_1              = None
+                    home_player_rank_text_1         = None
+                    home_player_sofa_id_1           = None
                     home_player_hpid_2              = None
                     home_player_rank_2              = None
                     home_player_rank_text_2         = None
                     home_player_sofa_id_2           = None
-                    if len(match['home_players']) > 1:
-                        home_player_hpid_2          = match['home_players'][1]['hpid']
-                        home_player_rank_2          = match['away_players'][1]['rank']
-                        home_player_rank_text_2     = match['away_players'][1]['rank_text']
-                        home_player_sofa_id_2       = match['away_players'][1]['sofa_id']
+                    if not match.get('away_players', None) is None:
+                        away_player_hpid_1              = match['away_players'][0].get('hpid', None)
+                        away_player_rank_1              = match['away_players'][0].get('rank', None)
+                        away_player_rank_text_1         = match['away_players'][0].get('rank_text', None)
+                        away_player_sofa_id_1           = match['away_players'][0].get('sofa_id', None)
+                    if not match.get('away_players', None) is None and len(match['away_players']) > 1:
+                        away_player_hpid_2          = match['away_players'][1].get('hpid', None)
+                        away_player_rank_2          = match['away_players'][1].get('rank', None)
+                        away_player_rank_text_2     = match['away_players'][1].get('rank_text', None)
+                        away_player_sofa_id_2       = match['away_players'][1].get('sofa_id', None)
+                    if not match.get('home_players', None) is None and not match.get('home_players', None) is None:
+                        home_player_hpid_1              = match['home_players'][0].get('hpid', None)
+                        home_player_rank_1              = match['home_players'][0].get('rank', None)
+                        home_player_rank_text_1         = match['home_players'][0].get('rank_text', None)
+                        home_player_sofa_id_1           = match['home_players'][0].get('sofa_id', None)
+                    if  not match.get('home_players', None) is None and len(match['home_players']) > 1:
+                        home_player_hpid_2          = match['home_players'][1].get('hpid', None)
+                        home_player_rank_2          = match['away_players'][1].get('rank', None)
+                        home_player_rank_text_2     = match['away_players'][1].get('rank_text', None)
+                        home_player_sofa_id_2       = match['away_players'][1].get('sofa_id', None)
                     away_score_value = 0
                     home_score_value = 0
                     try:
@@ -605,24 +614,26 @@ class HitParadeMatchDetailsSofaDbSerializer(HitParadeSerializer):
         connection, cursor = self.db_connect()
         if connection:
             try:
-                for p in data['home_players']:
-                    if not p.get('sofa_id', None) is None:
-                        sofa_id, hpid = self.user_exists(sofa_id=p['sofa_id'])
-                        if hpid:
-                            p['hpid'] = hpid
-                        else:
-                            sofa_id, hpid = self.insert_player(player=p)
-                            if sofa_id and hpid and sofa_id == p['sofa_id']:
+                if not data.get('home_players',None) is None:
+                    for p in data['home_players']:
+                        if not p.get('sofa_id', None) is None:
+                            sofa_id, hpid = self.user_exists(sofa_id=p['sofa_id'])
+                            if hpid:
                                 p['hpid'] = hpid
-                for p in data['away_players']:
-                    if not p.get('sofa_id', None) is None:
-                        sofa_id, hpid = self.user_exists(sofa_id=p['sofa_id'])
-                        if hpid:
-                            p['hpid'] = hpid
-                        else:
-                            sofa_id, hpid = self.insert_player(player=p)
-                            if sofa_id and hpid and sofa_id == p['sofa_id']:
+                            else:
+                                sofa_id, hpid = self.insert_player(player=p)
+                                if sofa_id and hpid and sofa_id == p['sofa_id']:
+                                    p['hpid'] = hpid
+                if not data.get('away_players', None) is None:
+                    for p in data['away_players']:
+                        if not p.get('sofa_id', None) is None:
+                            sofa_id, hpid = self.user_exists(sofa_id=p['sofa_id'])
+                            if hpid:
                                 p['hpid'] = hpid
+                            else:
+                                sofa_id, hpid = self.insert_player(player=p)
+                                if sofa_id and hpid and sofa_id == p['sofa_id']:
+                                    p['hpid'] = hpid
                 scraper_url, hpid, hash, hash_wurl, sequence_number, removed = self.match_exists(hash=data['hash'], hash_wurl=data['hash_wurl'], scraper_url=data['scraper_url'], remove_older=True)
                 if removed is None or removed:
                     data['sequence_number'] = 1

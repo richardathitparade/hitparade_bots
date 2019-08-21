@@ -60,13 +60,16 @@ class AggregatedSerializer(HitParadeSerializer):
                     print('file stored %s ' % id_file)
                 kwargs_dict = dict()
                 filename = kwargs['filename']
-                if filename and  '?' in filename:
-                    kwargs_dict['filename'] = filename.split('?')[0] + '.json'
-
-                kwargs_dict['filename'] =   '.'.join( kwargs_dict['filename'].split('.')[0:-1] + ['flattened'] + [kwargs_dict['filename'].split('.')[-1]] )
-                # reformatted_document['filename_flattened'] = kwargs_dict['filename']
-                kwargs_dict['data']     =   reformatted_document
-                id_file_rfm, stored_file_rfm = self.s3_uploader.store(**kwargs_dict)
+                if filename is None:
+                    print('filename is none for ' % json.dumps(kwargs))
+                else:
+                    if filename and  '?' in filename:
+                        kwargs_dict['filename'] = filename.split('?')[0] + '.json'
+                
+                    kwargs_dict['filename'] =   '.'.join( kwargs['filename'].split('.')[0:-1] + ['flattened'] + [kwargs['filename'].split('.')[-1]] )
+                    # reformatted_document['filename_flattened'] = kwargs_dict['filename']
+                    kwargs_dict['data']     =   reformatted_document
+                    id_file_rfm, stored_file_rfm = self.s3_uploader.store(**kwargs_dict)
             except:
                 print('file storage 1 error')
                 traceback.print_exc()
