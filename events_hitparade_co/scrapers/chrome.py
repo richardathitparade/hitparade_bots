@@ -32,9 +32,9 @@ class ChromeWebScraper(WebScraper):
         """
         #self.start_virtual_driver()
         self.options = webdriver.ChromeOptions()
-        #self.options.add_argument('window-size=1200x600')
-        #self.options.add_argument('--start-maximized')
-	#self.options.add_argument('--disable-popup-blocking')
+        self.options.add_argument('window-size=1200x600')
+        self.options.add_argument('--start-maximized')
+        self.options.add_argument('--disable-popup-blocking') 
         self.options.add_argument('--no-sandbox')
         #self.options.add_argument("--disable-setuid-sandbox")
         #user_data = '--user-data-dir='+self.google_chrome_binary
