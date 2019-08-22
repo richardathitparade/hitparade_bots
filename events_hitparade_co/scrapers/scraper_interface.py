@@ -1,15 +1,10 @@
-from events_hitparade_co.messaging.messaging import MessagingQueue 
-import json
+from events_hitparade_co.messaging.messaging import MessagingQueue
 from abc import abstractmethod
 import threading
 from threading import Thread
 import traceback
 from events_hitparade_co.registration.registration import RegisterLeafClasses
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-from datetime import datetime
-import time
-import threading
 class WebScraper(Thread):
     __metaclass__ = RegisterLeafClasses
     DEFAULT_WEB_SCRAPER_TIMEOUT = 5
@@ -52,6 +47,10 @@ class WebScraper(Thread):
         self.ip = kwargs.get('ip', None)
         self.get_state_static_prop = kwargs.get('get_state_static_prop', None)
         self.store_state_static_prop = kwargs.get('store_state_static_prop', None)
+        self.driver.get('https://www.google.com')
+
+
+
 
 
 
@@ -183,10 +182,6 @@ class WebScraper(Thread):
                     self.respond( obj=obj, command=command )
                 else:
                     self.respond( obj=response_object, command=command )
-                # del obj
-                # del command
-                # del scraper_component.default_parser
-                # del scraper_component
             else:
                 print(  'no longer active...quitting...'  )
             print('<<release producer scraper lock>>')
