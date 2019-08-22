@@ -85,6 +85,7 @@ class HitParadeBotCommandProcessor:
         message_dict = dict()
         message_dict['scraper_logins'] = scraping_props.get( 'scraper_logins', [] )
         message_dict['data_selectors'] = scraping_props.get( 'data_selectors', None )
+        message_dict['force_refresh'] = scraping_props.get( 'force_refresh', False )
         message_dict['web_driver'] = scraping_props.get( 'web_driver', None )
         message_dict['command'] = 'SCRAPE'
         message_dict['type_id'] = 'Scraper'
