@@ -3,6 +3,7 @@ from events_hitparade_co.bots.bot import HitParadeBot
 from events_hitparade_co.registration.registration import RegisterLeafClasses
 from abc import abstractmethod
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver import ActionChains
 import time
 from random import randrange
 class ScraperComponent:
@@ -150,7 +151,14 @@ class ScraperComponent:
                 if not scraper_url in current_url:
                     print( 'refresh %s ' % scraper_url )
                     print('---------------------------------- open value is scraper url %s --------------------------- ' % scraper_url)
+                    self.driver.execute_script('window.open();')
+                    handles = self.driver.window_handles
+                    self.driver.switch_to.window(handles[-1])
                     self.driver.get(scraper_url)
+                    print(self.driver.title)
+                    self.driver.switch_to.window(handles[0])
+                    self.driver.close()
+                    self.driver.switch_to.window(handles[-1])
                     #self.driver.refresh()
                     self.driver.implicitly_wait(15)
                     self.parser_kwargs['driver'] = self.driver
