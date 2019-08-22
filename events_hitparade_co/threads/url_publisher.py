@@ -157,37 +157,49 @@ class UrlPublisher(Thread):
                                status=status_value
                             )
 
+    def __publish_messages(self, messages=[]):
+        if not messages is None:
+            for message in messages:
+                process_id = message['data'].decode('utf-8')
+                push_event = self.publish_event
+                ##change
+                url_value, data_selector, publish_to_event, id_property, parent_id_property, id_value, parent_id_value = self.__get_next_url()
+                if not url_value is None and not data_selector is None:
+                    print('Sending %s scrape to process %s ' % (url_value, str(process_id)))
+                    publish_dict = dict()
+                    publish_dict['url'] = url_value
+                    publish_dict['id_property'] = id_property
+                    publish_dict['parent_id_property'] = parent_id_property
+                    publish_dict['scraper_process_id'] = process_id
+                    publish_dict[id_property] = id_value
+                    publish_dict[parent_id_property] = parent_id_value
+                    publish_dict['publish_to_event'] = publish_to_event
+                    publish_dict['publish_event'] = self.events.get(
+                        self.events.get(self.model_event_id, None).get('url_id', None), None).get('publish_to', None)
+                    publish_dict['data_selector'] = data_selector
+                    publish_dict['output_type'] = 'cache'
+                    if isinstance(push_event, list):
+                        for pe in push_event:
+                            self.cache_manager.pub(event=pe, output=publish_dict, recursive=False, pid=process_id,
+                                                   append_pid=True)
+                    else:
+                        self.cache_manager.pub(event=push_event, output=publish_dict, recursive=False, pid=process_id,
+                                               append_pid=True)
+
     def run(self):
 
-
+        last_messages = None
+        noop_count = 0
         while  self.state_storage_get_prop(prop='iterator_count') < (self.state_storage_get_prop(prop='offset_days') + self.state_storage_get_prop(prop='days_back')):
             try:
-                message =  self.event_subscriptions[self.subscribe_event]['subscriber'].next_message()
-                if message and not isinstance(message['data'], int) and message['data'].decode('utf-8').isdigit():
-                    process_id = message['data'].decode('utf-8')
-                    push_event = self.publish_event
-                    ##change
-                    url_value, data_selector, publish_to_event, id_property, parent_id_property, id_value, parent_id_value = self.__get_next_url()
-                    if not url_value is None and not data_selector is None:
-                        print(  'Sending %s scrape to process %s ' % (url_value, str(process_id))  )
-                        publish_dict = dict()
-                        publish_dict['url'] = url_value
-                        publish_dict['id_property'] = id_property
-                        publish_dict['parent_id_property'] = parent_id_property
-                        publish_dict['scraper_process_id'] = process_id
-                        publish_dict[ id_property ] =  id_value
-                        publish_dict[ parent_id_property ] = parent_id_value
-                        publish_dict['publish_to_event'] = publish_to_event
-                        publish_dict['publish_event'] = self.events.get(self.events.get(self.model_event_id, None).get('url_id', None), None).get('publish_to', None)
-                        publish_dict['data_selector'] = data_selector
-                        publish_dict['output_type'] = 'cache'
-                        if isinstance(push_event, list):
-                            for pe in push_event:
-                                self.cache_manager.pub( event=pe, output=publish_dict, recursive=False, pid=process_id, append_pid=True)
-                        else:
-                            self.cache_manager.pub(event=push_event, output=publish_dict, recursive=False, pid=process_id, append_pid=True)
+                messages =  self.event_subscriptions[self.subscribe_event]['subscriber'].next_messages()
+                if not messages is None and len(messages) > 0:
+                    self.__publish_messages(messages=messages)
+                    noop_count = 0
+                    last_messages = messages
                 else:
                     print('url-publisher listener no-op listening to %s ' % self.subscribe_event)
-                time.sleep(self.sleep_time)
+
+                time.sleep(5)
             except:
                 traceback.print_exc()
