@@ -154,7 +154,7 @@ class Scraper(ScraperComponent):
             return None, None, None
         else:
             text_to_hash = str( text_values['text'] ).encode( 'utf-8' )
-            text_to_hash_url = (str(text_to_hash) + str(url)).encode('utf-8') 
+            text_to_hash_url = (str(text_to_hash) + str(url)).encode('utf-8')
             print(' ********************************************************** url[%s] <--> current_url[%s] ****************************************************************' % ( url, self.scraper_url ) )
             if not 'hp_ts=' in url :
                 text_to_hash_curl = (str(text_to_hash) + str(self.scraper_url)).encode('utf-8')
@@ -363,7 +363,7 @@ class Scraper(ScraperComponent):
             first_status  = ['scraped']
             print('-------------------------------------------  storing hash (%s, %s) --> url[%s] [%s] --------------------------------------------------------' % ( scraper_vals['hash'], scraper_vals['hash_wurl'], url_stripped, self.scraper_url) )
             url_listing = [url_stripped, self.scraper_url]
-            if scraper_vals['forwarded']: 
+            if scraper_vals['forwarded']:
                 print('********** ********** ********** ********** ********** forwarded setup ********** ********** ********** ********** ********** ')
                 self.store_state_static_prop(prop=scraper_vals['hash'], val=url_listing, dict_sub=None)
                 self.store_state_static_prop(prop=scraper_vals['hash_wurl'], val=url_stripped, dict_sub=None)
