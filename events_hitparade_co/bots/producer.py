@@ -5,7 +5,6 @@ import time
 from random import randrange
 import traceback
 import pprint as pp
-import threading
 from events_hitparade_co.threads.messaging import Messaging
 
 class HitParadeProducerBot(HitParadeBot):
@@ -16,7 +15,7 @@ class HitParadeProducerBot(HitParadeBot):
         self.cache_manager = kwargs.get('cache_manager', None)
         self.output_connector = self.cache_output_component_func(type_id=kwargs.get( 'output', 'HitParadeCachePublisherOuput' ), **kwargs)
         self.hit_parade_command_processor = self.cache_output_component_func(**self.get_command_to(**kwargs))
-        self.sleep_time = 20
+        self.sleep_time = 5
         self.bot_type = kwargs.get( 'bot.type', 'producer' )
         self.state_storage_store_prop(prop='start_url', val=kwargs.get('scraper_url', None))
         self.pp = pp.PrettyPrinter(indent=4)
@@ -166,10 +165,13 @@ class HitParadeProducerBot(HitParadeBot):
 
     def get_runkwargs(self, **kwargs):
         print( 'runkwargs get url_value is %s' % kwargs.get('url_value', None) )
+        data_selectors = self.state_storage_get_prop('data_selectors')
+        if not data_selectors is None:
+            data_selectors['scraper_url'] = kwargs.get('url_value', None)
         return  {
                           'run_count': self.state_storage_get_prop('run_count'),
                           'scraper_url': kwargs.get('url_value', None) ,
-                          'data_selectors': self.state_storage_get_prop('data_selectors') ,
+                          'data_selectors': data_selectors ,
                           'bot_data' : self.bot_data,
                           'ip': self.ip,
                           'get_external_ip_addresss': self.get_external_ip_addresss
@@ -228,17 +230,6 @@ class HitParadeProducerBot(HitParadeBot):
         print('url value for scrape is %s ' % url_value )
         url_verified = self.get_state_static_prop(prop=v['hash'] , default_value=None, dict_sub=None)
         print('********** url_verified is %s , %s ********** **********' % ( type(url_verified), str(url_verified) ) )
-        counter = 0
-        while isinstance( url_verified, str) and not url_value in url_verified or isinstance( url_verified, list) and not url_value in url_verified:
-            c, v = self.run_commands(**run_kwargs)
-            url_verified = self.get_state_static_prop(prop=v['hash']+'.fullvalue' , default_value=None, dict_sub=None)
-            print('********** ********** url_verified is %s , %s ********** **********  ' % ( type(url_verified), str(url_verified) ) )
-            url_verified_wurl = self.get_state_static_prop(prop=v['hash']+'.wurl' , default_value=None, dict_sub=None)
-            print('********** ********** url_verified is now %s ********** ********** ' % str(url_verified))
-            print('********** ********** url_verified wurl is now %s ********** ********** ' % url_verified_wurl)
-            print('********** ********** url_value is now %s ********** ********** ' % url_value)
-            if url_verified is None:
-                url_verified = self.get_state_static_prop(prop=v['hash']  , default_value=None, dict_sub=None)
         return c, v, url_verified
 
 
@@ -303,33 +294,57 @@ class HitParadeProducerBot(HitParadeBot):
                     self.state_storage_store_prop(prop='output_dict', val=dict())
                     try:
                         if self.state_storage_get_prop('current_state').get('listen_for_urls', False):
-                            print('producer is listening for urls....')
-                            if not self.state_storage_get_prop('current_state').get('scraping_page', False):
-                                self.state_storage_store_prop(prop='current_state', dict_sub='listen_for_urls', val=True)
-                                print('not currently scraping any pages. Current url %s ' % str(self.state_storage_get_prop('current_state').get('current_url', None)))
-                                print( '<<<<<<<<waiting for new message...%s >>>>>>>>' % self.id  )
-                                self.state_storage_store_prop(prop='command_message', val=self.next_msg())
-                                if not self.state_storage_get_prop('command_message').get('command', None) == 'SHUTDOWN':
-                                    self.state_storage_store_prop(prop='current_state', dict_sub='scraping_page', val=True)
-                                    json_data_value = self.state_storage_get_prop('command_message').get('message', None)['data']
-                                    url_value, url_verified, url_verified_status = self.get_urlz(json_data=json_data_value)
-                                    self.store_state_vals(message_list=json_data_value , url_value=url_value, scraping=True, data_selector=json_data_value.get( 'data_selector', None ), publish_to=json_data_value.get( 'publish_to', None ))
-                                    run_kwargs = self.get_runkwargs(url_value=url_value)
-                                    c = v = None
-                                    if  url_value and url_verified_status is None and url_verified is None:
+                                print('producer is listening for urls....')
+                                if not self.state_storage_get_prop('current_state').get('scraping_page', False):
+                                    self.state_storage_store_prop(prop='current_state', dict_sub='listen_for_urls', val=True)
+                                    print('not currently scraping any pages. Current url %s ' % str(self.state_storage_get_prop('current_state').get('current_url', None)))
+                                    print( '<<<<<<<<waiting for new message...%s >>>>>>>>' % self.id  )
+                                    self.state_storage_store_prop(prop='command_message', val=self.next_msg())
+                                    if not self.state_storage_get_prop('command_message').get('command', None) == 'SHUTDOWN':
+                                        self.state_storage_store_prop(prop='current_state', dict_sub='scraping_page', val=True)
+                                        json_data_value = self.state_storage_get_prop('command_message').get('message', None)['data']
+                                        url_value, url_verified, url_verified_status = self.get_urlz(json_data=json_data_value)
+                                        self.store_state_vals(message_list=json_data_value , url_value=url_value, scraping=True, data_selector=json_data_value.get( 'data_selector', None ), publish_to=json_data_value.get( 'publish_to', None ))
+                                        run_kwargs = self.get_runkwargs(url_value=url_value)
+                                        c = v = None
+                                        # if  url_value and url_verified_status is None and url_verified is None:
                                         self.state_storage_store_prop( prop='scraper_url', val=url_value )
                                         self.state_storage_store_prop(prop='data_selectors', val=json_data_value.get('data_selector', {}).get('data_selectors', {}))
                                         self.state_storage_store_prop(prop='data_selectors',dict_sub='scraper_url', val=url_value)
                                         c,v,url_verified = self.__run_scr(url_value=url_value, **run_kwargs)
-                                        self.poststate(scraped_result=v, json_data=json_data_value)
-                                        self.synch_results(scraped_result=v)
-                                        self.republish_if_necessary(scraped_result=v, json_data=json_data_value)
-                                        self.reset_resources(scrape_command=c, scraped_result=v, run_kwargs=run_kwargs, url_value=url_value, url_verified=url_verified, url_verified_status=url_verified_status, json_data=json_data_value)
-                                        print('<< [%s] releasing producer lock >> ' % (str(self.id)))
-                            print('sleep....%s' % str(self.sleep_time)) 
-                            self.__sleep()
-                            if self.sc > 25:
-                                self.reset_resources()
+                                        if url_value in url_verified:
+                                            self.poststate(scraped_result=v, json_data=json_data_value)
+                                            self.synch_results(scraped_result=v)
+                                            self.republish_if_necessary(scraped_result=v, json_data=json_data_value)
+                                            self.reset_resources(scrape_command=c, scraped_result=v, run_kwargs=run_kwargs, url_value=url_value, url_verified=url_verified, url_verified_status=url_verified_status, json_data=json_data_value)
+                                            print('<< [%s] releasing producer lock >> ' % (str(self.id)))
+                                        else:
+                                            print('************************* hash is incorrect - [%s, %s] *************************' % (url_value, url_verified))
+                                            cnt = 0
+                                            while not url_value in url_verified and cnt < 5:
+                                                self.__sleep()
+                                                print('rescrape %s ' % (str(cnt+1)))
+                                                run_kwargs['force_refresh'] = True
+                                                c, v, url_verified = self.__run_scr(url_value=url_value, **run_kwargs)
+                                                cnt += 1
+                                            if url_value in url_verified:
+                                                self.poststate(scraped_result=v, json_data=json_data_value)
+                                                self.synch_results(scraped_result=v)
+                                                self.republish_if_necessary(scraped_result=v, json_data=json_data_value)
+                                                self.reset_resources(scrape_command=c, scraped_result=v,
+                                                                         run_kwargs=run_kwargs, url_value=url_value,
+                                                                         url_verified=url_verified,
+                                                                         url_verified_status=url_verified_status,
+                                                                         json_data=json_data_value)
+                                                print('<< [%s] releasing producer lock >> ' % (str(self.id)))
+                                            else:
+                                                print('maximum retry scrape of 5 exceeded.')
+
+
+                                print('sleep....%s' % str(self.sleep_time))
+                                self.__sleep()
+                                if self.sc > 25:
+                                    self.reset_resources()
                     except:
                         traceback.print_exc()
                         self.state_storage_increment_val(prop='exception_count', val=1)
