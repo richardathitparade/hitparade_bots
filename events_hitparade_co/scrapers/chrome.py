@@ -42,7 +42,7 @@ class ChromeWebScraper(WebScraper):
         #self.options.binary_location = self.google_chrome_binary
         print('driver_path=%s' % self.chrome_binary)
         print('chrome binary=%s' % self.google_chrome_binary)
-	self.driver = webdriver.Chrome(chrome_options=self.options,service_args=['--verbose'])
+        self.driver = webdriver.Chrome(chrome_options=self.options, service_args=['--verbose'])
         # -- linux setup self.driver = webdriver.Chrome(self.chrome_binary, chrome_options=self.options,service_args=['--verbose', '--log-path=/tmp/chromedriver.log'])
         self.driver.switch_to.window(self.driver.window_handles[-1])
         print('number windows is %s ' % str(len(self.driver.window_handles[-1])))
