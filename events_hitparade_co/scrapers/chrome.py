@@ -30,7 +30,7 @@ class ChromeWebScraper(WebScraper):
         Creates the browser specific driver in this instance Chrome
         :return:
         """
-        self.start_virtual_driver()
+        #self.start_virtual_driver()
         self.options = webdriver.ChromeOptions()
         #self.options.add_argument('window-size=1200x600')
         #self.options.add_argument('--start-maximized')
