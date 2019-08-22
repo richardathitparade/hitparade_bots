@@ -16,3 +16,22 @@ class CacheSubscriber:
         if self.root_config is None:
             config_object = self.event_config
         return self.cache_manager.get_message(host=config_object['host'], port=config_object['port'], cache_type=config_object['cache_type'])
+
+
+    def next_messages(self):
+        messages = {}
+        message = {
+            'data' : b'123'
+        }
+        while message and not isinstance(message['data'], int) and message['data'].decode('utf-8').isdigit():
+            config_object = self.root_config
+            if self.append_pid:
+                config_object = self.event_config
+            if self.root_config is None:
+                config_object = self.event_config
+            message = self.cache_manager.get_message(host=config_object['host'], port=config_object['port'], cache_type=config_object['cache_type'])
+            if message and not isinstance(message['data'], int) and message['data'].decode('utf-8').isdigit():
+                k = str(message['data'])
+                if messages.get(k, None) is None:
+                    messages[k] = message
+        return [messages[k] for k in messages.keys()]
