@@ -22,6 +22,7 @@ class FirefoxWebScraper(WebScraper):
         :return:
         """
         self.driver = webdriver.Firefox()
+        self.driver.maximize_window()
 
     def set_headless(self):
         """
