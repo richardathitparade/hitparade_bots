@@ -149,7 +149,11 @@ class MessagingQueue:
                         dir = '<---'
                     print('{%s} %s ...waiting from %s' % (id, dir, caller))
                     if wait:
-                        return queue.get()
+                        try:
+                            return queue.get(timeout=45)
+                        except:
+                            print('timeout waiting....')
+                            return None, None
                     else:
                         try:
                             return queue.get_nowait()
