@@ -312,7 +312,7 @@ class HitParadeProducerBot(HitParadeBot):
                                         self.state_storage_store_prop(prop='data_selectors', val=json_data_value.get('data_selector', {}).get('data_selectors', {}))
                                         self.state_storage_store_prop(prop='data_selectors',dict_sub='scraper_url', val=url_value)
                                         c,v,url_verified = self.__run_scr(url_value=url_value, **run_kwargs)
-                                        if url_value in url_verified:
+                                        if not url_value is None and not url_verified is None and url_value in url_verified:
                                             self.poststate(scraped_result=v, json_data=json_data_value)
                                             self.synch_results(scraped_result=v)
                                             self.republish_if_necessary(scraped_result=v, json_data=json_data_value)
@@ -321,7 +321,7 @@ class HitParadeProducerBot(HitParadeBot):
                                         else:
                                             print('************************* hash is incorrect - [%s, %s] *************************' % (url_value, url_verified))
                                             cnt = 0
-                                            while not url_value in url_verified and cnt < 5:
+                                            while url_value is None or url_verified is None or not url_value in url_verified and cnt < 5:
                                                 self.__sleep()
                                                 print('rescrape %s ' % (str(cnt+1)))
                                                 run_kwargs['force_refresh'] = True
