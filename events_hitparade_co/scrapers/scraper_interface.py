@@ -42,7 +42,6 @@ class WebScraper(Thread):
         self.state_storage_store_prop( prop='start_url', val=kwargs.get('start_url', None) )
         self.default_parser = kwargs.get('default_parser', None)
         self._stop_event = threading.Event()
-        self.scraping_lock = threading.Lock()
         self.get_external_ip_adresss = kwargs.get('get_external_ip_adresss', None)
         self.ip = kwargs.get('ip', None)
         self.get_state_static_prop = kwargs.get('get_state_static_prop', None)
@@ -147,45 +146,44 @@ class WebScraper(Thread):
         while not ( ERROR_MESSAGE or QUIT ) and not self.stopped():
             print('[%s] Thread message loop ' % str(id_value))
             command, obj = MessagingQueue.wait_for_msg(id=self.id, direction='in', caller=str(id_value) )
-            print('<<acquire producer scraper lock>>')
-            self.scraping_lock.acquire()
-            obj['driver'] = self.driver
-            obj['get_state_static_prop'] = self.get_state_static_prop
-            obj['store_state_static_prop'] = self.store_state_static_prop
-            obj['id'] = self.id
-            obj['web_driver'] = self
-            type_id_value = obj.get('type_id', None)
-            del obj['type_id']
-            obj['cache_manager'] = self.cache_manager
-            obj['ip'] = self.ip
-            obj['get_external_ip_addresss'] = self.get_external_ip_adresss
-            print('ip is %s ' % self.ip)
-            obj['open_url']=False
-            obj['default_parser'] = self.default_parser
-            obj['nocommand'] = True
-            for k in self.__dict__.keys():
-                if 'storage_' in k:
-                    obj[k] = self.__dict__[k]
-            if scraper_component is None:
-                scraper_component = self.cache_manager.cache_output_component_func(type_id=type_id_value, **obj)
-            else:
-                scraper_component.reset(**obj)
-
-            print('[%s] :: command in %s with message %s '  %  (str(self.get_id()), command, str(obj)))
-            if not self.stopped() or command == 'QUIT':
-                print('[%s] Thread command either thread has been stopped or command is QUIT {%s} ' % ( str(self.get_id()), command ) )
-                response_object = scraper_component.exec(**obj)
-                if response_object is None:
-                    print('response object is none.')
-                    print(command)
-                    print(obj)
-                    self.respond( obj=obj, command=command )
+            if obj and command:
+                print('<<acquire producer scraper lock>>')
+                obj['driver'] = self.driver
+                obj['get_state_static_prop'] = self.get_state_static_prop
+                obj['store_state_static_prop'] = self.store_state_static_prop
+                obj['id'] = self.id
+                obj['web_driver'] = self
+                type_id_value = obj.get('type_id', None)
+                del obj['type_id']
+                obj['cache_manager'] = self.cache_manager
+                obj['ip'] = self.ip
+                obj['get_external_ip_addresss'] = self.get_external_ip_adresss
+                print('ip is %s ' % self.ip)
+                obj['open_url']=False
+                obj['default_parser'] = self.default_parser
+                obj['nocommand'] = True
+                for k in self.__dict__.keys():
+                    if 'storage_' in k:
+                        obj[k] = self.__dict__[k]
+                if scraper_component is None:
+                    scraper_component = self.cache_manager.cache_output_component_func(type_id=type_id_value, **obj)
                 else:
-                    self.respond( obj=response_object, command=command )
-            else:
-                print(  'no longer active...quitting...'  )
+                    scraper_component.reset(**obj)
+
+                print('[%s] :: command in %s with message %s '  %  (str(self.get_id()), command, str(obj)))
+                if not self.stopped() or command == 'QUIT':
+                    print('[%s] Thread command either thread has been stopped or command is QUIT {%s} ' % ( str(self.get_id()), command ) )
+                    response_object = scraper_component.exec(**obj)
+                    if response_object is None:
+                        print('response object is none.')
+                        print(command)
+                        print(obj)
+                        self.respond( obj=obj, command=command )
+                    else:
+                        self.respond( obj=response_object, command=command )
+                else:
+                    print(  'no longer active...quitting...'  )
             print('<<release producer scraper lock>>')
-            self.scraping_lock.release()
         if not  self.stopped():
             print('This Web Scraper %s is no longer active.  Shutting down. ' % self.id )
 
